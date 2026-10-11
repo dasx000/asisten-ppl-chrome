@@ -65,3 +65,13 @@ test('Excel rekap: subtotal, total, dan lembar per komoditas', () => {
   assert.match(teks, /RINGKASAN PER KOMODITAS/);
   assert.match(teks, /<v>4\.5<\/v>/);
 });
+
+test('filter komoditas: baris campuran (padi MT1 + jagung MT2) hanya dihitung komoditas terpilih', () => {
+  const luas = (kom) => R.rekap(R.saringBaris(DATA, { komoditas: kom }), NAMA, kom);
+  const padi = luas('PADI');
+  assert.equal(padi.total.luas, 1.25); // 1 (Tanjung Bulan) + 0,25 (Datar Bancong, baris campuran)
+  assert.deepEqual(padi.perKomoditas.map((k) => k.komoditas), ['PADI']);
+  assert.equal(luas('JAGUNG').total.luas, 1.25); // 0,5 + 0,5 + 0,25
+  assert.equal(luas('KOPI').total.petani, 1);
+  assert.deepEqual(R.pilihan(DATA, NAMA).komoditas.map((k) => k.id), ['JAGUNG', 'KOPI', 'PADI']);
+});

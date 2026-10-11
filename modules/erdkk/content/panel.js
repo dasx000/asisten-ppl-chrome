@@ -29,8 +29,9 @@
     henti: false, // diminta berhenti di tengah hapus massal
     info: null, // { jenis: 'ok'|'galat', teks } hasil aksi terakhir
     tab: 'dup', // dup | rekap
+    penuh: false, // panel dibesarkan selebar layar
     namaDesa: new Map(), // kode desa → nama
-    fr: { desa: '', poktan: '', status: '' }, // filter rekap ('' status = aktif)
+    fr: { desa: '', poktan: '', status: '', komoditas: '' }, // filter rekap ('' status = aktif)
   };
   const sibuk = () => st.tahap === 'memuat' || !!st.menghapus;
 
@@ -112,6 +113,7 @@
     const fokus = akar.activeElement && akar.activeElement.name;
     const tahun = st.baris[0] && st.baris[0].tahun;
     laci.classList.toggle('lebar', st.tab === 'rekap');
+    laci.classList.toggle('penuh', st.penuh);
     laci.replaceChildren(
       h('header', { class: 'kepala' },
         h('div', {},
@@ -119,7 +121,11 @@
           h('div', { class: 'sub' }, st.tab === 'rekap'
             ? `Rekap luas lahan per kampung, poktan, komoditas${tahun ? ` · Tahun ${tahun}` : ''}`
             : `Cek duplikasi: baris identik di semua status${tahun ? ` · Tahun ${tahun}` : ''}`)),
-        h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕')),
+        h('div', { class: 'tombol-kepala' },
+          h('button', { class: 'tutup', type: 'button', title: st.penuh ? 'Kecilkan panel' : 'Perbesar panel selebar layar',
+            'aria-label': st.penuh ? 'Kecilkan panel' : 'Perbesar panel', onclick: () => { st.penuh = !st.penuh; render(); } },
+          st.penuh ? '⤡' : '⛶'),
+          h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕'))),
       h('nav', { class: 'tab-utama', role: 'tablist' },
         [['dup', '⧉ Cek Duplikasi'], ['rekap', '▦ Rekap Luas']].map(([k, l]) => h('button', {
           type: 'button', role: 'tab', 'aria-selected': String(st.tab === k), class: st.tab === k ? 'aktif' : '',
@@ -353,6 +359,7 @@
     return [
       st.fr.desa ? `Desa ${nama(p.desa, st.fr.desa)}` : 'Semua desa',
       st.fr.poktan ? `Poktan ${nama(p.poktan, st.fr.poktan)}` : 'semua poktan',
+      st.fr.komoditas ? `komoditas ${st.fr.komoditas}` : 'semua komoditas',
       st.fr.status === 'semua' ? 'semua status' : st.fr.status ? `status "${nama(p.status, st.fr.status)}"` : 'semua status kecuali ditolak/batal/Not Valid',
     ].join(' · ');
   }
@@ -360,7 +367,7 @@
   function viewRekap() {
     const p = R.pilihan(st.baris, st.namaDesa, st.fr.desa);
     if (st.fr.poktan && !p.poktan.some((x) => x.id === st.fr.poktan)) st.fr.poktan = '';
-    const r = R.rekap(R.saringBaris(st.baris, st.fr), st.namaDesa);
+    const r = R.rekap(R.saringBaris(st.baris, st.fr), st.namaDesa, st.fr.komoditas);
     const ubah = (k, v) => { st.fr[k] = v; if (k === 'desa') st.fr.poktan = ''; render(); };
     const sel = (name, nilai, opsi, semua) => h('label', { class: 'pilih' }, h('span', {}, semua.label),
       h('select', { name, onchange: (e) => ubah(name, e.target.value) },
@@ -369,6 +376,7 @@
     const sel3 = h('section', { class: 'filter-rekap' },
       sel('desa', st.fr.desa, p.desa, { label: 'Kelurahan/Desa', opsi: [['', 'Semua desa']] }),
       sel('poktan', st.fr.poktan, p.poktan, { label: 'Kelompok Tani', opsi: [['', 'Semua poktan']] }),
+      sel('komoditas', st.fr.komoditas, p.komoditas, { label: 'Komoditas', opsi: [['', 'Semua komoditas']] }),
       sel('status', st.fr.status, p.status, { label: 'Status', opsi: [['', 'Semua (kecuali ditolak/batal/Not Valid)'], ['semua', 'Semua status']] }));
 
     const sel1 = (t) => [h('td', { class: 'n' }, fmtKg(t.petani)), h('td', { class: 'n tebal' }, fmtLuas(t.luas)),
@@ -385,23 +393,24 @@
     return [
       sel3,
       h('section', { class: 'ringkas-atas' },
-        h('div', { class: 'angka-besar hijau' }, h('b', {}, fmtLuas(r.total.luas)), h('span', {}, 'ha luas lahan')),
+        h('div', { class: 'angka-besar hijau' }, h('b', {}, fmtLuas(r.total.luas)), h('span', {}, 'ha luas lahan per tahun')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, fmtKg(r.total.petani)), h('span', {}, 'petani (baris)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, r.perKomoditas.map((k) => k.komoditas).join(', ') || '-'), h('span', {}, 'komoditas'))),
       r.perKomoditas.length > 1 && h('p', { class: 'diperbarui' }, r.perKomoditas.map((k) => `${k.komoditas} ${fmtLuas(k.luas)} ha`).join(' · ')),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Luas = luas lahan PER TAHUN, bukan per periode tanam (MT). '),
+        'Lahan jagung 0,5 ha yang ditanam di MT1 dan MT2 dihitung 0,5 ha, bukan 1 ha. Pupuk = jumlah MT1–MT3 dalam setahun.'),
       !r.desa.length ? h('p', { class: 'kosong' }, 'Tidak ada data untuk filter ini.')
         : h('div', { class: 'tabel-rekap' }, h('table', {},
-          h('thead', {}, h('tr', {}, ['Kampung / Poktan', 'Komoditas', 'Petani', 'Luas (ha)', 'Urea', 'NPK', 'NPK-F', 'Organik']
+          h('thead', {}, h('tr', {}, ['Kampung / Poktan', 'Komoditas', 'Petani', 'Luas/Tahun (ha)', 'Urea/Th (kg)', 'NPK/Th (kg)', 'NPK-F/Th (kg)', 'Organik/Th (kg)']
             .map((t, i) => h('th', { class: i > 1 ? 'n' : '' }, t)))),
           h('tbody', {}, body),
           h('tfoot', {}, h('tr', {}, h('td', { colspan: 2 }, 'TOTAL'), ...sel1(r.total))))),
-      h('p', { class: 'diperbarui' }, 'Luas = luas lahan per tahun (dihitung sekali, MT tidak dijumlah). Pupuk dalam kg, jumlah MT1–MT3. ' +
-        'Data dihitung apa adanya, termasuk salinan dobel.'),
+      h('p', { class: 'diperbarui' }, 'Data dihitung apa adanya, termasuk salinan dobel. Bersihkan dulu lewat tab Cek Duplikasi supaya angkanya tepat.'),
     ];
   }
 
   function unduhRekap() {
-    const r = R.rekap(R.saringBaris(st.baris, st.fr), st.namaDesa);
+    const r = R.rekap(R.saringBaris(st.baris, st.fr), st.namaDesa, st.fr.komoditas);
     const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterRekap() };
     unduhFile(window.AsistenExcel.buat(L.susunRekap(info, r)), 'Rekap Luas e-RDKK');
   }

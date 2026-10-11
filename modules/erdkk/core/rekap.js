@@ -24,13 +24,15 @@
   }
 
   /**
-   * Saring baris: { desa, poktan, status } — status: '' (aktif: kecuali ditolak/batal/Not Valid), 'semua', atau id status.
+   * Saring baris: { desa, poktan, status, komoditas } — status: '' (aktif: kecuali ditolak/batal/Not Valid), 'semua',
+   * atau id status. komoditas: baris yang menanam komoditas itu di salah satu MT (hitungannya disaring lagi di rekap()).
    */
   function saringBaris(baris, f = {}) {
     return baris.filter((b) => {
       if (f.status === 'semua') { /* semua */ } else if (f.status) { if (String(b.statusId) !== String(f.status)) return false; } else if (b.dikecualikan) return false;
       if (f.desa && b.desa !== f.desa) return false;
       if (f.poktan && b.poktanId !== f.poktan) return false;
+      if (f.komoditas && !b.mt.some((m) => m.komoditas.toUpperCase() === f.komoditas)) return false;
       return true;
     });
   }
@@ -47,12 +49,13 @@
    * Return { desa: [{ kode, nama, total, poktan: [{ id, nama, total, komoditas: [{ komoditas, ...total }] }] }],
    *          total, perKomoditas: [{ komoditas, ...total }], jumlahBaris }
    */
-  function rekap(baris, namaDesa = new Map()) {
+  function rekap(baris, namaDesa = new Map(), komoditas = '') {
     const desa = new Map();
     const total = kosong();
     const perKom = new Map();
     for (const b of baris) {
       for (const x of perKomoditas(b)) {
+        if (komoditas && x.komoditas !== komoditas) continue; // baris campuran: hanya komoditas yang dipilih
         if (!desa.has(b.desa)) desa.set(b.desa, { kode: b.desa, nama: namaDesa.get(b.desa) || `Desa ${b.desa}`, total: kosong(), poktan: new Map() });
         const d = desa.get(b.desa);
         if (!d.poktan.has(b.poktanId)) d.poktan.set(b.poktanId, { id: b.poktanId, nama: b.poktan || `Poktan ${b.poktanId}`, total: kosong(), komoditas: new Map() });
@@ -78,14 +81,15 @@
 
   /** Pilihan filter dari data: desa, poktan (opsional dalam desa tertentu), status. */
   function pilihan(baris, namaDesa = new Map(), desaTerpilih = '') {
-    const desa = new Map(), poktan = new Map(), status = new Map();
+    const desa = new Map(), poktan = new Map(), status = new Map(), komoditas = new Set();
     for (const b of baris) {
+      for (const m of b.mt) if (m.komoditas) komoditas.add(m.komoditas.toUpperCase());
       if (b.desa) desa.set(b.desa, namaDesa.get(b.desa) || `Desa ${b.desa}`);
       if (b.poktanId && (!desaTerpilih || b.desa === desaTerpilih)) poktan.set(b.poktanId, b.poktan || `Poktan ${b.poktanId}`);
       status.set(String(b.statusId), b.status);
     }
     const daftar = (m) => [...m].map(([id, nama]) => ({ id, nama })).sort((a, b) => a.nama.localeCompare(b.nama));
-    return { desa: daftar(desa), poktan: daftar(poktan), status: [...status].map(([id, nama]) => ({ id, nama })).sort((a, b) => a.id - b.id) };
+    return { desa: daftar(desa), poktan: daftar(poktan), komoditas: [...komoditas].sort().map((k) => ({ id: k, nama: k })), status: [...status].map(([id, nama]) => ({ id, nama })).sort((a, b) => a.id - b.id) };
   }
 
   const api = { PUPUK_REKAP, perKomoditas, saringBaris, rekap, pilihan };
