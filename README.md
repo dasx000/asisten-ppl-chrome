@@ -140,7 +140,8 @@ beserta jumlah petani.
 - Filter **Kelurahan/Desa**, **Kelompok Tani**, **Komoditas**, dan **Status** (bawaan: semua kecuali ditolak/batal/Not Valid).
   Pengajuan campuran (mis. padi MT1 + jagung MT2) hanya dihitung bagian komoditas yang dipilih.
 - Tombol **⛶** di kepala panel membesarkan panel selebar layar; klik lagi untuk kembali.
-- Subtotal per poktan dan per kampung, total, dan ringkasan per komoditas. **Unduh Excel** mengikuti filter yang aktif.
+- Subtotal per poktan dan per kampung, total, dan ringkasan per komoditas.
+- Nama desa dari master wilayah e-RDKK (`/api/areas-sub-district`, cadangan: menu Master Data → Wilayah). **Unduh Excel** mengikuti filter yang aktif.
 
 ---
 

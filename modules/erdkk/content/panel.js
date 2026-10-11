@@ -92,8 +92,11 @@
       const mentah = await API.semuaPengajuan({ onProgres: (n, total) => { st.progres = { n, total }; render(); } });
       st.baris = mentah.map(D.normalisasi);
       st.waktu = new Date().toISOString();
-      const kecBelum = [...new Set(st.baris.map((b) => b.kecamatan))].filter((k) => k && ![...st.namaDesa.keys()].some((d) => d.startsWith(k)));
-      if (kecBelum.length) for (const [k, v] of await API.namaDesa(kecBelum)) st.namaDesa.set(k, v);
+      const desaBelum = [...new Set(st.baris.map((b) => b.desa))].filter((k) => k && !st.namaDesa.has(k));
+      if (desaBelum.length) {
+        const kec = [...new Set(st.baris.filter((b) => desaBelum.includes(b.desa)).map((b) => b.kecamatan))];
+        for (const [k, v] of await API.namaDesa(kec, { desa: desaBelum })) st.namaDesa.set(k, v);
+      }
       if (!st.baris.length) st.galat = 'Tidak ada data pengajuan yang terbaca dari akun ini.';
     } catch (e) {
       console.error('[Asisten e-RDKK]', e);
