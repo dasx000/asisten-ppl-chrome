@@ -117,10 +117,10 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
 ### Rekap Luas
 
 Tab **Rekap Luas** di panel yang sama menampilkan luas lahan yang diajukan **per kampung → kelompok tani → komoditas**,
-beserta jumlah petani dan pupuk per tahun (Urea, NPK, NPK Formula, Organik).
+beserta jumlah petani.
 
 - **Luas = luas lahan per tahun**: dihitung sekali per petani per komoditas, MT1–MT3 tidak dijumlah
-  (bila luas antar MT berbeda, diambil yang terbesar). Pupuk = jumlah MT1–MT3.
+  (bila luas antar MT berbeda, diambil yang terbesar).
 - **Luas Tanam** = jumlah luas MT1+MT2+MT3, tampil berdampingan dengan Luas/Tahun. Luas Tanam ÷ Luas/Tahun
   menunjukkan berapa kali lahan ditanam setahun (mis. padi yang hanya diisi MT1 akan sama dengan Luas/Tahun).
 - Data dihitung apa adanya, termasuk salinan dobel bila ada.
