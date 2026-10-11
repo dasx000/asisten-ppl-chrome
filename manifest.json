@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Asisten Penyuluh",
+  "name": "Asisten PPL",
   "version": "0.2.0",
   "description": "Alat bantu tidak resmi untuk tugas penyuluh di berbagai aplikasi. Modul: SIMLUH (update anggota poktan dari Excel).",
   "icons": {
@@ -10,7 +10,7 @@
   },
   "permissions": ["storage"],
   "action": {
-    "default_title": "Asisten Penyuluh",
+    "default_title": "Asisten PPL",
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/ikon16.png",

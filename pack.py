@@ -9,7 +9,7 @@ LEWATI = {"test", "demo", "__pycache__"}  # khusus pengembang, tidak ikut dibagi
 
 versi = json.load(open(os.path.join(AKAR, "manifest.json"), encoding="utf-8"))["version"]
 os.makedirs(os.path.join(AKAR, "dist"), exist_ok=True)
-tujuan = os.path.join(AKAR, "dist", f"asisten-penyuluh-v{versi}.zip")
+tujuan = os.path.join(AKAR, "dist", f"asisten-ppl-v{versi}.zip")
 
 
 def berkas_di(sumber):
@@ -25,6 +25,6 @@ def berkas_di(sumber):
 with zipfile.ZipFile(tujuan, "w", zipfile.ZIP_DEFLATED) as z:
     for item in ISI:
         for f in berkas_di(os.path.join(AKAR, item)):
-            # Folder induk "AsistenPenyuluh/" agar hasil ekstrak langsung jadi satu folder; pemisah '/' (standar ZIP)
-            z.write(f, "AsistenPenyuluh/" + os.path.relpath(f, AKAR).replace(os.sep, "/"))
+            # Folder induk "AsistenPPL/" agar hasil ekstrak langsung jadi satu folder; pemisah '/' (standar ZIP)
+            z.write(f, "AsistenPPL/" + os.path.relpath(f, AKAR).replace(os.sep, "/"))
 print(tujuan, f"{os.path.getsize(tujuan) // 1024} KB")

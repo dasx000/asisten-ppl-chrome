@@ -1,4 +1,4 @@
-# Asisten Penyuluh
+# Asisten PPL
 
 Ekstensi Chrome/Edge berisi alat bantu untuk tugas penyuluh di berbagai aplikasi. Setiap tugas berupa **modul**
 yang bisa dinyalakan atau dimatikan lewat ikon ekstensi di toolbar.
@@ -14,7 +14,7 @@ Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Pytho
 
 ## Cara pasang (mode developer)
 
-1. Ekstrak file `asisten-penyuluh-vX.Y.Z.zip` ke folder tetap, misalnya `Documents\AsistenPenyuluh`.
+1. Ekstrak file `asisten-ppl-vX.Y.Z.zip` ke folder tetap, misalnya `Documents\AsistenPPL`.
    Jangan hapus atau pindahkan folder ini setelah dipasang.
 2. Buka `chrome://extensions` (Chrome) atau `edge://extensions` (Edge).
 3. Nyalakan **Developer mode** / **Mode pengembang**.
@@ -22,7 +22,7 @@ Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Pytho
 
 **Memperbarui ke versi baru:** ganti isi folder dengan versi baru, lalu klik tombol ↻ (Reload) pada ekstensi di halaman `chrome://extensions`.
 
-**Menyalakan/mematikan modul:** klik ikon Asisten Penyuluh di toolbar, lalu geser saklar modulnya.
+**Menyalakan/mematikan modul:** klik ikon Asisten PPL di toolbar, lalu geser saklar modulnya.
 
 ---
 
@@ -88,7 +88,7 @@ modules/
 ### Perintah
 
 - Test semua modul: `npm test`
-- Membuat ZIP: `npm run pack` (atau `python pack.py`) → `dist/asisten-penyuluh-vX.Y.Z.zip`
+- Membuat ZIP: `npm run pack` (atau `python pack.py`) → `dist/asisten-ppl-vX.Y.Z.zip`
 - Video demo SIMLUH: `python modules/simluh/demo/buat_video.py` → `dist/demo-asisten-simluh.mp4`
   (halaman SIMLUH tiruan + data fiktif; butuh playwright, openpyxl, dan ffmpeg dari PATH/env `FFMPEG`/node_modules DASBOT).
   Versi mode Ubah dengan narasi suara: `python modules/simluh/demo/buat_video_suara.py [--ardi]` → `dist/demo-ubah-bersuara.mp4`
