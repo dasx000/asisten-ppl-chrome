@@ -97,3 +97,46 @@ test('semuaPengajuan: baca per halaman sampai recordsTotal', async () => {
   assert.equal(rows.length, total);
   assert.deepEqual(panggil, [0, 500, 1000]);
 });
+
+test('aturan hapus: hanya draf, sisakan minimal satu, yang terkirim disisakan', () => {
+  const { kelompok } = D.cari(DATA);
+  const k = Object.fromEntries(kelompok.map((x) => [x.nama, x]));
+  // SALAM: 2 draf + 1 terkirim → kedua draf boleh dihapus, yang terkirim tidak
+  assert.deepEqual(k.SALAM.baris.map((b) => D.bolehHapus(k.SALAM, b)), [true, true, false]);
+  assert.deepEqual(D.salinanHapus(k.SALAM).map((b) => b.statusId), [1, 1]);
+  // ISMAIL: semua terkirim → tidak ada yang bisa dihapus
+  assert.deepEqual(D.salinanHapus(k.ISMAIL), []);
+  assert.equal(k.ISMAIL.baris.some((b) => D.bolehHapus(k.ISMAIL, b)), false);
+  // semua draf → sisakan yang paling awal dibuat
+  const draf = D.cari([baris('A', '9', 1, { created_at: '2026-10-02T00:00:00Z' }), baris('A', '9', 1, { created_at: '2026-10-01T00:00:00Z' }),
+    baris('A', '9', 1, { created_at: '2026-10-03T00:00:00Z' })].map(D.normalisasi)).kelompok[0];
+  const hapus = D.salinanHapus(draf);
+  assert.equal(hapus.length, 2);
+  assert.ok(!hapus.some((b) => b.dibuat === '2026-10-01T00:00:00Z'));
+});
+
+test('cekSebelumHapus: tolak bila hilang, status berubah, isi berubah, atau tidak ada kembaran', () => {
+  const { kelompok } = D.cari(DATA);
+  const salam = kelompok.find((x) => x.nama === 'SALAM');
+  const b = salam.baris[0];
+  assert.equal(D.cekSebelumHapus(DATA, b), '');
+  assert.match(D.cekSebelumHapus(DATA.filter((x) => x.id !== b.id), b), /tidak ada/);
+  assert.match(D.cekSebelumHapus(DATA.map((x) => (x.id === b.id ? { ...x, statusId: 2, status: 'Menunggu' } : x)), b), /status sudah berubah/);
+  assert.match(D.cekSebelumHapus(DATA.map((x) => (x.id === b.id ? { ...x, sidik: 'lain' } : x)), b), /isi baris sudah berubah/);
+  const sendiri = DATA.filter((x) => x.sidik !== b.sidik || x.id === b.id);
+  assert.match(D.cekSebelumHapus(sendiri, b), /tidak ada salinan lain/);
+});
+
+test('api.hapus: POST delete-pengajuan dengan token & id, galat server diteruskan', async () => {
+  let req;
+  const ok = async (url, o) => { req = { url, o }; return { status: 200, text: async () => '{"message":"ok"}' }; };
+  await A.hapus(123, { fetch: ok, token: 'TKN' });
+  assert.equal(req.url, '/api/delete-pengajuan');
+  assert.equal(req.o.method, 'POST');
+  assert.equal(req.o.headers['X-CSRF-TOKEN'], 'TKN');
+  assert.equal(new URLSearchParams(req.o.body).get('id'), '123');
+  await assert.rejects(A.hapus(1, { fetch: async () => ({ status: 403, text: async () => '{"message":"Tidak diizinkan"}' }), token: 'T' }), /Tidak diizinkan/);
+  await assert.rejects(A.hapus(1, { fetch: async () => ({ status: 200, text: async () => '{"success":false,"message":"Status tidak valid"}' }), token: 'T' }), /Status tidak valid/);
+  await assert.rejects(A.hapus(1, { fetch: async () => ({ status: 419, text: async () => '' }), token: 'T' }), A.SesiHabis);
+  await assert.rejects(A.hapus(1, { fetch: ok, token: '' }), /Token keamanan/);
+});

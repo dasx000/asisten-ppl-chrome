@@ -1,5 +1,6 @@
 // ================= AKSES e-RDKK DARI HALAMAN (SESI LOGIN PENGGUNA) ================= \\
-// Hanya BACA (GET) dari API yang sama dengan tabel menu Pengajuan. Data otomatis sebatas wilayah akun yang login.
+// Baca (GET) dari API yang sama dengan tabel menu Pengajuan; data otomatis sebatas wilayah akun yang login.
+// Satu-satunya aksi tulis: hapus pengajuan, memakai endpoint & token yang sama dengan tombol Hapus bawaan.
 
 (function (root) {
   'use strict';
@@ -58,7 +59,52 @@
     return hasil;
   }
 
-  const api = { ServerSibuk, SesiHabis, ambilJson, semuaPengajuan, PER_HALAMAN };
+  /** Token CSRF halaman e-RDKK (meta csrf-token), sama seperti yang dipakai tombol Hapus bawaan. */
+  function tokenHalaman(doc = root.document) {
+    const m = doc && doc.querySelector('meta[name="csrf-token"]');
+    return (m && m.getAttribute('content')) || '';
+  }
+
+  /**
+   * Hapus satu pengajuan: POST /api/delete-pengajuan (sama dengan tombol Hapus di menu Pengajuan).
+   * Tidak diulang otomatis bila gagal, supaya tidak ada aksi ganda.
+   */
+  async function hapus(id, opsi = {}) {
+    const fetchFn = opsi.fetch || (root.fetch && root.fetch.bind(root));
+    const token = opsi.token != null ? opsi.token : tokenHalaman();
+    if (!token) throw new Error('Token keamanan halaman tidak ditemukan. Muat ulang halaman e-RDKK lalu coba lagi.');
+    const body = new URLSearchParams({ id: String(id), sub_district_code: '', kelompokTani: '', statusPengajuan: '' });
+    let r;
+    try {
+      r = await fetchFn('/api/delete-pengajuan', {
+        method: 'POST', credentials: 'include', cache: 'no-store', body,
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token,
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      });
+    } catch (e) {
+      throw new ServerSibuk('koneksi ke e-RDKK terputus saat menghapus. Periksa ulang untuk memastikan hasilnya.');
+    }
+    if (r.status === 401 || r.status === 419) throw new SesiHabis();
+    const teks = await r.text();
+    if (r.status >= 400) {
+      let pesan = '';
+      try { const j = JSON.parse(teks); pesan = j.message || j.error || ''; } catch (e) { /* bukan JSON */ }
+      throw new Error(`e-RDKK menolak penghapusan (HTTP ${r.status})${pesan ? `: ${pesan}` : ''}`);
+    }
+    try {
+      const j = JSON.parse(teks);
+      if (j && (j.success === false || j.status === false || j.status === 'error')) throw new Error(j.message || 'e-RDKK menolak penghapusan');
+      return j;
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        if (/<form|login|password/i.test(teks)) throw new SesiHabis();
+        return {};
+      }
+      throw e;
+    }
+  }
+
+  const api = { ServerSibuk, SesiHabis, ambilJson, semuaPengajuan, tokenHalaman, hapus, PER_HALAMAN };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkApi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

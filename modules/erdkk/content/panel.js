@@ -1,7 +1,9 @@
 // ================= PANEL "CEK DUPLIKASI" DI e-RDKK ================= \\
 // Aturan sama dengan Monitoring Duplikasi bawaan (baris identik semua kolom = ter-upload 2x), tapi memeriksa
 // SEMUA status pengajuan, bukan hanya "Belum dikirim ke Korluh".
-// Hanya membaca data. Data berisi NIK, jadi TIDAK disimpan di browser: selalu diambil ulang saat panel dibuka.
+// Aksi: hapus salinan berstatus "Belum dikirim ke Korluh" (endpoint sama dengan tombol Hapus bawaan), selalu dengan
+// konfirmasi, cek ulang data terbaru, dan minimal satu baris per kelompok disisakan.
+// Data berisi NIK, jadi TIDAK disimpan di browser: selalu diambil ulang saat panel dibuka.
 
 (function () {
   'use strict';
@@ -22,8 +24,10 @@
     galat: '',
     f: { cari: '', wilayah: '', jenis: 'semua' },
     terbuka: null, // kunci kelompok yang rinciannya dibuka (hanya satu)
+    menghapus: null, // { teks } saat proses hapus berjalan
+    info: null, // { jenis: 'ok'|'galat', teks } hasil aksi terakhir
   };
-  const sibuk = () => st.tahap === 'memuat';
+  const sibuk = () => st.tahap === 'memuat' || !!st.menghapus;
 
   function h(tag, props, ...anak) {
     const el = document.createElement(tag);
@@ -68,9 +72,13 @@
     else render();
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.buka) setBuka(false); });
+  window.addEventListener('beforeunload', (e) => {
+    if (st.menghapus) { e.preventDefault(); e.returnValue = ''; }
+  });
 
-  async function muat() {
+  async function muat(simpanInfo = false) {
     Object.assign(st, { tahap: 'memuat', galat: '', progres: null });
+    if (!simpanInfo) st.info = null;
     render();
     try {
       const mentah = await API.semuaPengajuan({ onProgres: (n, total) => { st.progres = { n, total }; render(); } });
@@ -104,6 +112,8 @@
         h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕')),
       h('div', { class: 'isi' },
         st.galat && h('div', { class: 'galat', role: 'alert' }, st.galat),
+        st.info && h('div', { class: `info ${st.info.jenis}`, role: 'status' }, st.info.teks),
+        st.menghapus && h('div', { class: 'progres' }, h('div', { class: 'progres-judul' }, st.menghapus.teks)),
         sibuk() && viewProgres(),
         st.baris.length && viewHasil()),
       viewAksi());
@@ -177,26 +187,73 @@
       h('span', { class: 'panah', 'aria-hidden': 'true' }, buka ? '▾' : '▸')),
       buka && h('div', { class: 'rinci' },
         h('table', {},
-          h('thead', {}, h('tr', {}, ['Status', 'Dibuat', 'MT1', 'MT2', 'MT3', 'ID'].map((t) => h('th', {}, t)))),
+          h('thead', {}, h('tr', {}, ['Status', 'Dibuat', 'MT1', 'MT2', 'MT3', 'ID', 'Aksi'].map((t) => h('th', {}, t)))),
           h('tbody', {}, k.baris.map((b) => h('tr', { class: b.statusId === D.STATUS_DRAF ? 'draf' : '' },
             h('td', {}, b.status),
             h('td', {}, L.waktu(b.dibuat)),
             ...b.mt.map((m) => h('td', {}, D.ringkasMt(m))),
-            h('td', { class: 'id' }, String(b.id)))))),
+            h('td', { class: 'id' }, String(b.id)),
+            h('td', {}, D.bolehHapus(k, b)
+              ? h('button', { type: 'button', class: 'hapus', disabled: sibuk(), onclick: () => hapusBaris(k, [b]) }, 'Hapus')
+              : h('span', { class: 'tetap', title: b.statusId === D.STATUS_DRAF ? 'Disisakan satu' : 'Sudah dikirim, tidak bisa dihapus penyuluh' }, '—')))))),
+        D.salinanHapus(k).length > 0 && h('div', { class: 'aksi-kartu' },
+          h('button', { type: 'button', class: 'hapus besar', disabled: sibuk(), onclick: () => hapusBaris(k, D.salinanHapus(k)) },
+            `🗑 Hapus ${D.salinanHapus(k).length} salinan, sisakan 1`)),
         h('p', { class: 'saran' }, k.bisaDihapus
           ? (k.bisaDihapus === k.baris.length
-            ? `Semua baris masih "Belum dikirim ke Korluh" dan bisa Anda hapus di menu Pengajuan. Sisakan satu.`
-            : `${k.bisaDihapus} baris "Belum dikirim ke Korluh" (biru) adalah salinan data yang sudah dikirim. Hapus yang biru di menu Pengajuan.`)
+            ? 'Semua baris masih "Belum dikirim ke Korluh". Tombol di atas menghapus salinannya dan menyisakan yang paling awal dibuat.'
+            : `${k.bisaDihapus} baris biru ("Belum dikirim ke Korluh") adalah salinan data yang sudah dikirim, aman dihapus.`)
           : 'Semua baris sudah dikirim/diproses. Koordinasikan dengan Korluh agar salinannya ditolak/dikembalikan.')));
   }
 
   function viewAksi() {
     const ada = st.baris.length && hasil().kelompok.length;
     return h('footer', { class: 'aksi' },
-      h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: muat }, sibuk() ? 'Memeriksa…' : st.baris.length ? '↻ Periksa ulang' : 'Periksa duplikasi'),
+      h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memeriksa…' : st.baris.length ? '↻ Periksa ulang' : 'Periksa duplikasi'),
       ada ? h('button', { class: 'kedua', type: 'button', onclick: unduh }, 'Unduh Excel') : null,
-      h('p', { class: 'aksi-ket' }, 'Hanya membaca data e-RDKK dengan akun Anda, tidak menghapus apa pun. Data tidak disimpan di browser. ' +
+      h('p', { class: 'aksi-ket' }, 'Data dibaca dengan akun Anda. Penghapusan hanya terjadi saat Anda klik Hapus dan menyetujui konfirmasi. ' +
+        'Data tidak disimpan di browser. ' +
         'Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
+  }
+
+  // ─── Aksi hapus ────────────────────────────────────────────────────────────
+  async function hapusBaris(k, daftar) {
+    if (sibuk() || !daftar.length) return;
+    const tersisa = k.baris.length - daftar.length;
+    const rinci = daftar.map((b) => `• ID ${b.id} — ${b.status}, dibuat ${L.waktu(b.dibuat)}`).join('\n');
+    const tanya = `Hapus ${daftar.length} salinan pengajuan ini dari e-RDKK?\n\n${k.nama} — NIK ${k.nik}\n${rinci}\n\n` +
+      `Tersisa ${tersisa} baris setelah dihapus. Penghapusan tidak bisa dibatalkan.`;
+    if (!window.confirm(tanya)) return;
+
+    st.menghapus = { teks: 'Memeriksa data terbaru sebelum menghapus…' };
+    st.info = null;
+    render();
+    const ok = [], gagal = [];
+    try {
+      let terbaru = (await API.semuaPengajuan()).map(D.normalisasi);
+      for (const [i, b] of daftar.entries()) {
+        st.menghapus = { teks: `Menghapus ${i + 1} dari ${daftar.length} (ID ${b.id})…` };
+        render();
+        const alasan = D.cekSebelumHapus(terbaru, b);
+        if (alasan) { gagal.push(`ID ${b.id}: ${alasan}`); continue; }
+        try {
+          await API.hapus(b.id);
+          ok.push(b.id);
+          terbaru = terbaru.filter((x) => x.id !== b.id);
+        } catch (e) {
+          if (e instanceof API.SesiHabis) throw e;
+          gagal.push(`ID ${b.id}: ${e.message}`);
+        }
+      }
+    } catch (e) {
+      console.error('[Asisten e-RDKK]', e);
+      gagal.push(e.message);
+    }
+    st.menghapus = null;
+    st.info = gagal.length
+      ? { jenis: 'galat', teks: `${ok.length ? `${ok.length} salinan ${k.nama} terhapus. ` : ''}Tidak dihapus: ${gagal.join('; ')}` }
+      : { jenis: 'ok', teks: `✅ ${ok.length} salinan ${k.nama} berhasil dihapus. Data sudah diperiksa ulang.` };
+    await muat(true); // baca ulang supaya daftar sesuai kondisi terbaru
   }
 
   function unduh() {

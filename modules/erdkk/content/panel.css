@@ -138,6 +138,18 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .rinci th { color: var(--teks-lemah); font-weight: 600; background: #fafbfc; }
 .rinci tr.draf td:first-child { color: var(--biru); font-weight: 600; }
 .rinci td.id { color: var(--teks-lemah); font-variant-numeric: tabular-nums; }
+.rinci button.hapus {
+  padding: 3px 10px; border: 1.5px solid #f1b8b2; border-radius: 7px; background: #fff; color: var(--merah);
+  font-size: 12px; font-weight: 600;
+}
+.rinci button.hapus:hover:not(:disabled) { background: var(--merah-muda); }
+.rinci .tetap { color: var(--teks-lemah); }
+.aksi-kartu { margin-top: 10px; }
+.rinci button.hapus.besar { padding: 8px 14px; font-size: 13px; background: var(--merah); border-color: var(--merah); color: #fff; }
+.rinci button.hapus.besar:hover:not(:disabled) { background: #8f1c13; }
+.info { margin-bottom: 12px; padding: 11px 13px; border-radius: var(--radius); font-weight: 500; }
+.info.ok { background: var(--hijau-muda); color: var(--hijau-tua); border: 1px solid #bfe0cc; }
+.info.galat { background: var(--merah-muda); color: var(--merah); border: 1px solid #f5c2bd; }
 .saran { margin: 8px 0 0; font-size: 12.5px; color: var(--teks-lemah); }
 .aman { margin-top: 14px; padding: 14px; border-radius: var(--radius); background: var(--hijau-muda); color: var(--hijau-tua); font-weight: 600; }
 .kosong { margin: 20px 0; text-align: center; color: var(--teks-lemah); }

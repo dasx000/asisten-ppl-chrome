@@ -127,12 +127,45 @@
     return [...peta].map(([id, nama]) => ({ id, nama })).sort((a, b) => a.nama.localeCompare(b.nama));
   }
 
+  // ─── Aturan hapus ──────────────────────────────────────────────────────────
+  // Hanya baris "Belum dikirim ke Korluh" yang boleh dihapus, dan selalu sisakan minimal satu baris per kelompok.
+
+  /** Boleh hapus baris b dari kelompok k sekarang? */
+  function bolehHapus(k, b) {
+    return b.statusId === STATUS_DRAF && k.baris.length > 1 && k.baris.some((x) => x.id === b.id);
+  }
+
+  /**
+   * Salinan yang dihapus oleh tombol "Hapus salinan" kelompok: semua draf bila ada baris yang sudah dikirim
+   * (yang terkirim disisakan); bila semuanya draf, sisakan yang paling awal dibuat.
+   */
+  function salinanHapus(k) {
+    const draf = k.baris.filter((b) => b.statusId === STATUS_DRAF);
+    if (draf.length < k.baris.length) return draf;
+    const urut = [...draf].sort((a, b) => String(a.dibuat).localeCompare(String(b.dibuat)) || a.id - b.id);
+    return urut.slice(1);
+  }
+
+  /**
+   * Cek ulang sebelum menghapus, dengan data terbaru dari server: baris masih ada, masih draf, masih identik
+   * dengan kelompoknya, dan setelah dihapus masih tersisa minimal satu baris. Return '' bila aman, atau alasan.
+   */
+  function cekSebelumHapus(barisTerbaru, b) {
+    const sekarang = barisTerbaru.find((x) => x.id === b.id);
+    if (!sekarang) return 'baris sudah tidak ada (mungkin sudah dihapus)';
+    if (sekarang.statusId !== STATUS_DRAF) return `status sudah berubah menjadi "${sekarang.status}"`;
+    if (sekarang.sidik !== b.sidik) return 'isi baris sudah berubah, bukan salinan lagi';
+    const kembar = barisTerbaru.filter((x) => !x.dikecualikan && x.sidik === b.sidik && x.id !== b.id);
+    if (!kembar.length) return 'tidak ada salinan lain yang tersisa, baris ini tidak dihapus';
+    return '';
+  }
+
   /** "MT1 JAGUNG 0,5 ha" ringkas */
   function ringkasMt(m) {
     return m.komoditas ? `${m.komoditas} ${String(m.luas).replace('.', ',')} ha` : '-';
   }
 
-  const api = { STATUS_DRAF, PUPUK, ABAIKAN, sidik, dikecualikan, normalisasi, cari, saring, hitung, daftarWilayah, ringkasMt };
+  const api = { STATUS_DRAF, PUPUK, ABAIKAN, sidik, dikecualikan, normalisasi, cari, bolehHapus, salinanHapus, cekSebelumHapus, saring, hitung, daftarWilayah, ringkasMt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkDuplikasi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
