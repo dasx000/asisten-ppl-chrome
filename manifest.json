@@ -37,9 +37,10 @@
       "matches": ["https://ebanper.pertanian.go.id/penyuluh/*"],
       "js": [
         "common/modul.js",
-        "lib/xlsx.full.min.js",
         "modules/ebanper/core/api.js",
         "modules/ebanper/core/kuota.js",
+        "modules/ebanper/core/excel.js",
+        "modules/ebanper/core/laporan.js",
         "modules/ebanper/content/panel.js"
       ],
       "run_at": "document_idle"

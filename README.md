@@ -77,7 +77,8 @@ kegiatan satu per satu.
 4. Saring dengan kolom cari (misalnya `padi`, `traktor`, `pompa`), pilihan subsektor, atau tab **Masih ada sisa** / **Habis**.
    Kegiatan tanpa kuota (Rancangan Pusat 0) disembunyikan, centang **Tampilkan tanpa kuota** untuk melihatnya.
 5. Klik **Rincian** pada kegiatan untuk melihat rincian output, unit cost, dan volume yang diajukan per kabupaten.
-6. Klik **Unduh Excel** untuk menyimpan rekap kuota.
+6. Klik **Unduh Excel** untuk menyimpan rekap kuota: lembar **Kuota** (dikelompokkan per subsektor, status berwarna,
+   header terkunci, siap filter & cetak A4 lanskap) dan lembar **Ringkasan** per subsektor.
 
 ---
 
@@ -103,6 +104,8 @@ modules/
   ebanper/
     core/api.js          GET ke /api/cpcl/* e-Banper dengan sesi login browser (hanya baca)
     core/kuota.js        telusuri subsektor → bidang → komoditas → kegiatan, ambil volume_summary tiap kegiatan
+    core/excel.js        penulis .xlsx bergaya (warna, garis, filter, bekukan header) tanpa pustaka; SheetJS gratis tidak menulis gaya
+    core/laporan.js      tata letak Excel: lembar Kuota (per subsektor, warna status) + Ringkasan
     content/panel.js     panel Kuota Program (Shadow DOM), simpanan terakhir di chrome.storage.local
     content/panel.css
     test/                test Node (tidak ikut ZIP)

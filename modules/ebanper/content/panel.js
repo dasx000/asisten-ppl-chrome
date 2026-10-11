@@ -128,7 +128,7 @@
       h('header', { class: 'kepala' },
         h('div', {},
           h('div', { class: 'judul' }, 'Kuota Program e-Banper'),
-          h('div', { class: 'sub' }, d && d.kabupaten ? `${d.kabupaten}${d.tahun ? ` · Tahun ${d.tahun}` : ''}` : 'Rancangan Pusat · Telah Diajukan · Sisa')),
+          h('div', { class: 'sub' }, d && d.kabupaten ? `${window.EbanperLaporan.rapikanWilayah(d.kabupaten)}${d.tahun ? ` · Tahun ${d.tahun}` : ''}` : 'Rancangan Pusat · Telah Diajukan · Sisa')),
         h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕')),
       h('div', { class: 'isi' },
         st.galat && h('div', { class: 'galat', role: 'alert' }, st.galat),
@@ -242,30 +242,19 @@
   }
 
   function unduh() {
-    const XLSX = window.XLSX;
     const d = st.data;
     const t = new Date(d.waktu || Date.now());
     const dua = (x) => String(x).padStart(2, '0');
     const tgl = `${t.getFullYear()}-${dua(t.getMonth() + 1)}-${dua(t.getDate())} ${dua(t.getHours())}.${dua(t.getMinutes())}`;
-    const baris = K.saring(d.baris, { ...st.f, cari: '', status: 'semua', subsektor: '' });
-    const aoa = [
-      [`Kuota Program e-Banper — ${d.kabupaten || ''}${d.tahun ? ` — Tahun ${d.tahun}` : ''}`],
-      [`Data per: ${tgl}`],
-      [],
-      ['No', 'Subsektor', 'Komoditas', 'Kegiatan', 'Rincian Output', 'Kewenangan', 'Satuan',
-        'Rancangan Pusat', 'Telah Diajukan', 'Sisa', '% Terpakai', 'Status', 'ID Kegiatan'],
-      ...baris.map((b, i) => [i + 1, b.subsektor, b.komoditas, b.kegiatan, b.ro, b.kewenangan, b.satuan,
-        b.rancangan, b.diajukan, b.sisa, b.rancangan ? b.persen / 100 : '', LABEL[b.status], b.id]),
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{ wch: 5 }, { wch: 30 }, { wch: 16 }, { wch: 40 }, { wch: 30 }, { wch: 15 }, { wch: 9 },
-      { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 11 }, { wch: 15 }, { wch: 11 }];
-    for (let r = 4; r < aoa.length; r++) {
-      const c = ws[XLSX.utils.encode_cell({ r, c: 10 })];
-      if (c && c.t === 'n') c.z = '0%';
-    }
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Kuota');
-    XLSX.writeFile(wb, `Kuota e-Banper - ${(d.kabupaten || 'Kabupaten').replace(/[\\/:*?"<>|]/g, '')} - ${tgl}.xlsx`);
+    // Semua subsektor & status; ikut pilihan "Tampilkan tanpa kuota"
+    const baris = K.saring(d.baris, { tampilKosong: st.f.tampilKosong });
+    const isi = window.EbanperExcel.buat(window.EbanperLaporan.susun(d, baris));
+    const url = URL.createObjectURL(new Blob([isi], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const kab = window.EbanperLaporan.rapikanWilayah(d.kabupaten) || 'Kabupaten';
+    const a = h('a', { href: url, download: `Kuota e-Banper - ${kab.replace(/[\\/:*?"<>|]/g, '')} - ${tgl}.xlsx` });
+    akar.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 })();

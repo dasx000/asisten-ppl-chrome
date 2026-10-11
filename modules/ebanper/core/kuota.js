@@ -73,7 +73,7 @@
       ro: keg.nama_ro || '',
       komponen: keg.nama_komponen || '',
       eselon: keg.eselon1 || '',
-      kewenangan: keg.nama_kewenangan || '',
+      kewenangan: /^kab(upaten)?\s*\/\s*kota$/i.test(String(keg.nama_kewenangan || '').trim()) ? 'Kab/Kota' : keg.nama_kewenangan || '',
       tagging: keg.tagging_kegiatan || '',
       satuan: v.satuan || keg.satuan || '',
       unitcost: angka(keg.unitcost),
