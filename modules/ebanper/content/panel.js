@@ -45,7 +45,7 @@
   const akar = host.attachShadow({ mode: 'open' });
   akar.append(h('link', { rel: 'stylesheet', href: chrome.runtime.getURL('modules/ebanper/content/panel.css') }));
   const fab = h('button', { class: 'fab', type: 'button', onclick: () => setBuka(true), title: 'Asisten PPL — Kuota Program' },
-    h('span', { class: 'fab-ikon', 'aria-hidden': 'true' }, '📊'), 'Kuota Program');
+    'Kuota Program');
   const latar = h('div', { class: 'latar', onclick: () => setBuka(false) });
   const laci = h('aside', { class: 'laci', role: 'dialog', 'aria-label': 'Kuota Program e-Banper' });
   akar.append(fab, latar, laci);
@@ -191,7 +191,7 @@
         ? `Data per ${waktu.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} pukul ${waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}. Klik "Muat ulang data" untuk angka terbaru.`
         : ''),
       filter,
-      d.galat && d.galat.length ? h('div', { class: 'peringatan-blok' }, '⚠ Sebagian gagal dibaca: ', d.galat.join('; ')) : null,
+      d.galat && d.galat.length ? h('div', { class: 'peringatan-blok' }, 'Sebagian gagal dibaca: ', d.galat.join('; ')) : null,
       tampil.length ? daftar : h('p', { class: 'kosong' }, 'Tidak ada kegiatan yang cocok dengan filter.'),
     ];
   }
@@ -216,7 +216,7 @@
         h('div', { class: 'bar-isi', style: `width:${lebar}%` })),
       h('button', { type: 'button', class: 'rinci-tombol', 'aria-expanded': String(buka),
         onclick: () => { st.terbuka = buka ? null : b.id; render(); } },
-      buka ? '▾ Sembunyikan rincian' : `▸ Rincian${b.rancangan ? ` · ${b.persen}% terpakai` : ''}`),
+      buka ? 'Sembunyikan rincian' : `Lihat rincian${b.rancangan ? ` · ${b.persen}% terpakai` : ''}`),
       buka && h('dl', { class: 'rinci' },
         b.ro && [h('dt', {}, 'Rincian Output'), h('dd', {}, b.ro)],
         b.komponen && [h('dt', {}, 'Komponen'), h('dd', {}, b.komponen)],
@@ -234,7 +234,7 @@
       tombol.push(h('button', { class: 'kedua', type: 'button', disabled: st.berhenti, onclick: () => { st.berhenti = true; render(); } },
         st.berhenti ? 'Menghentikan…' : 'Hentikan'));
     } else {
-      tombol.push(h('button', { class: 'utama', type: 'button', onclick: muat }, st.data ? '↻ Muat ulang data' : 'Ambil data kuota'));
+      tombol.push(h('button', { class: 'utama', type: 'button', onclick: muat }, st.data ? 'Muat ulang data' : 'Ambil data kuota'));
       if (st.data && st.data.baris.length) tombol.push(h('button', { class: 'kedua', type: 'button', onclick: unduh }, 'Unduh Excel'));
     }
     return h('footer', { class: 'aksi' }, tombol,

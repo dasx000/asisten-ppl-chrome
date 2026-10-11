@@ -86,7 +86,7 @@
   const akar = host.attachShadow({ mode: 'open' });
   akar.append(h('link', { rel: 'stylesheet', href: chrome.runtime.getURL('modules/simluh/content/panel.css') }));
   const fab = h('button', { class: 'fab', type: 'button', onclick: () => setBuka(true), title: 'Asisten Excel SIMLUH' },
-    h('span', { class: 'fab-ikon', 'aria-hidden': 'true' }, '⇪'), 'Update dari Excel');
+    'Update dari Excel');
   const latar = h('div', { class: 'latar', onclick: () => !sibuk() && setBuka(false) });
   const laci = h('aside', { class: 'laci', role: 'dialog', 'aria-label': 'Asisten Excel SIMLUH' });
   akar.append(fab, latar, laci);
@@ -150,9 +150,9 @@
       ondrop: (e) => { e.preventDefault(); zona.classList.remove('seret'); if (!kunci) setFile(e.dataTransfer.files[0]); },
     },
     st.file
-      ? [h('div', { class: 'zona-ikon' }, '📄'), h('div', { class: 'zona-nama' }, st.file.name),
+      ? [h('div', { class: 'zona-nama' }, st.file.name),
         h('div', { class: 'zona-ket' }, `${(st.file.size / 1024).toFixed(0)} KB · klik untuk ganti file`)]
-      : [h('div', { class: 'zona-ikon' }, '📂'), h('div', { class: 'zona-nama' }, 'Pilih atau seret file Cetak Excel ke sini'),
+      : [h('div', { class: 'zona-nama' }, 'Pilih atau seret file Cetak Excel ke sini'),
         h('div', { class: 'zona-ket' }, 'Format .xls / .xlsx dari tombol "Cetak Excel" SIMLUH')]);
 
     return h('section', { class: 'langkah' },
@@ -161,7 +161,7 @@
         Object.entries(MODE).map(([k, m]) => h('button', {
           type: 'button', role: 'radio', 'aria-checked': String(st.mode === k), class: st.mode === k ? 'aktif' : '',
           disabled: kunci, onclick: () => { st.mode = k; st.galat = ''; render(); },
-        }, k === 'ubah' ? '✏️ ' : '➕ ', m.judul))),
+        }, m.judul))),
       h('p', { class: 'bantuan' }, MODE[st.mode].bantuan),
       h('div', { class: 'label-langkah' }, '2. Pilih file Cetak Excel'),
       zona, pilihFile,
@@ -173,7 +173,7 @@
   /** Penjelasan keamanan agar pengguna tidak ragu memakai. */
   function viewAman() {
     return h('section', { class: 'aman' },
-      h('div', { class: 'aman-judul' }, '🛡️ Aman dipakai'),
+      h('div', { class: 'aman-judul' }, 'Aman dipakai'),
       h('ul', {},
         h('li', {}, h('b', {}, 'Tidak pernah menghapus anggota. '), 'Baris yang Anda hapus dari Excel hanya dilewati, anggotanya tetap ada di SIMLUH.'),
         h('li', {}, h('b', {}, 'Tidak ada yang dikirim sebelum Anda klik Kirim. '), 'Semua perubahan ditampilkan dulu untuk diperiksa.'),
@@ -213,7 +213,7 @@
         h('span', { class: 'baris' }, `baris ${x.baris}`)),
       tahap === 'pratinjau' || x.status !== S.SAMA ? rinci : null,
       x.alasan && h('div', { class: 'alasan' }, x.alasan),
-      x.peringatan.length > 0 && x.status !== S.TOLAK && h('div', { class: 'peringatan' }, '⚠ ' + x.peringatan.join('; ')));
+      x.peringatan.length > 0 && x.status !== S.TOLAK && h('div', { class: 'peringatan' }, x.peringatan.join('; ')));
   }
 
   function viewDaftar(tahap) {
@@ -238,7 +238,7 @@
         h('ul', { class: 'daftar' }, isi.map((x) => kartu(x, tahap))));
     });
     return h('section', { class: 'hasil' },
-      tahap === 'selesai' && h('div', { class: 'selesai' }, st.berhenti ? '⏸ Proses dihentikan' : '✅ Selesai',
+      tahap === 'selesai' && h('div', { class: 'selesai' }, st.berhenti ? 'Proses dihentikan' : 'Selesai',
         st.waktu ? ` · ${st.waktu}` : ''),
       ringkas,
       catatan.map((c) => h('p', { class: 'catatan' }, c)),
