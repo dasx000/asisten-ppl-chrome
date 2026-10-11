@@ -141,7 +141,7 @@ beserta jumlah petani.
   Pengajuan campuran (mis. padi MT1 + jagung MT2) hanya dihitung bagian komoditas yang dipilih.
 - Tombol **⛶** di kepala panel membesarkan panel selebar layar; klik lagi untuk kembali.
 - Subtotal per poktan dan per kampung, total, dan ringkasan per komoditas.
-- Nama desa dari master wilayah e-RDKK (`/api/areas-sub-district`, cadangan: menu Master Data → Wilayah). **Unduh Excel** mengikuti filter yang aktif.
+- Nama desa dari master wilayah e-RDKK (`/api/wilayah`, sumber menu Master Data → Wilayah). **Unduh Excel** mengikuti filter yang aktif.
 
 ---
 

@@ -86,24 +86,20 @@ test('luas tanam = jumlah MT1+MT2+MT3, berdampingan dengan luas per tahun', () =
   assert.match(teks, /Luas Total PT MT1\+MT2\+MT3/);
 });
 
-test('namaDesa: kode yang tidak ada di areas-sub-district dicari di halaman Wilayah (HTML atau API-nya)', async () => {
+test('namaDesa: utama /api/wilayah (semua desa), cadangan /api/areas-sub-district', async () => {
   const A = require('../core/api.js');
-  const res = (body, json = true) => ({ status: 200, text: async () => (json ? JSON.stringify(body) : body) });
-  const areas = { data: [{ sub_district_code: '1808022008', sub_district: 'KOTAWAY' }] };
-  // 1) tabel HTML server-side
-  const html = '<table><tr><td>1808022008</td><td>KOTAWAY</td></tr><tr><td> 1808022014 </td><td><span>SUKAJADI</span></td><td>KASUI</td></tr></table>';
-  const f1 = async (u) => (u.startsWith('/api/areas') ? res(areas) : res(html, false));
-  const p1 = await A.namaDesa(['180802'], { fetch: f1, desa: ['1808022008', '1808022014'] });
-  assert.equal(p1.get('1808022014'), 'SUKAJADI');
-  // 2) tabel AJAX: alamat API diambil dari skrip halaman
-  const html2 = '<table id="t"></table><script>$("#t").DataTable({ajax:{url:"/api/master-wilayah"}})</script>';
-  const f2 = async (u) => (u.startsWith('/api/areas') ? res(areas) : u.startsWith('/wilayah') ? res(html2, false)
-    : res({ data: [{ sub_district_code: '1808022014', sub_district: 'SUKAJADI' }] }));
-  const p2 = await A.namaDesa(['180802'], { fetch: f2, desa: ['1808022014'] });
-  assert.equal(p2.get('1808022014'), 'SUKAJADI');
-  // 3) semua sudah ada → halaman Wilayah tidak dibuka
-  let dibuka = false;
-  const f3 = async (u) => { if (u === '/wilayah') dibuka = true; return res(areas); };
-  await A.namaDesa(['180802'], { fetch: f3, desa: ['1808022008'] });
-  assert.equal(dibuka, false);
+  const res = (body) => ({ status: 200, text: async () => JSON.stringify(body) });
+  const wilayah = { draw: 1, recordsTotal: 2, data: [
+    { sub_district_code: '1808022008', sub_district: 'KOTAWAY', district_code: '180802' },
+    { sub_district_code: '1808022014', sub_district: 'SUKAJADI', district_code: '180802' }] };
+  const areas = { data: [{ sub_district_code: '1808022008', sub_district: 'KOTAWAY' }] }; // hanya sebagian desa
+  const panggil = [];
+  const f = async (u) => { panggil.push(u.split('?')[0]); return res(u.startsWith('/api/wilayah') ? wilayah : areas); };
+  const p = await A.namaDesa(['180802'], { fetch: f, desa: ['1808022008', '1808022014'] });
+  assert.equal(p.get('1808022014'), 'SUKAJADI');
+  assert.deepEqual(panggil, ['/api/wilayah']); // semua sudah ada → cadangan tidak dipanggil
+  // /api/wilayah gagal → cadangan areas-sub-district
+  const g = async (u) => (u.startsWith('/api/wilayah') ? { status: 404, text: async () => 'x' } : res(areas));
+  const q = await A.namaDesa(['180802'], { fetch: g, desa: ['1808022008'] });
+  assert.equal(q.get('1808022008'), 'KOTAWAY');
 });
