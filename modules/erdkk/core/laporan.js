@@ -196,8 +196,8 @@
     const judul = (v, s) => { const r = kosong(); r[0] = isi(v, s); return r; };
     const semua = grup.flatMap((d) => d.poktan.flatMap((p) => p.item));
     const rows = [
-      judul('CEK MT PADI & JAGUNG e-RDKK', { bold: true, size: 15, color: W.hijauTua }),
-      judul(`Tahun ${info.tahun || ''} · padi/jagung harus 2 MT setahun; yang 1 atau 3 MT ditandai`, { bold: true }),
+      judul('CEK MT/PT e-RDKK', { bold: true, size: 15, color: W.hijauTua }),
+      judul(`Tahun ${info.tahun || ''} · padi & jagung harus 2 MT; kopi (tahunan) maks 1 PT`, { bold: true }),
       judul(info.filterTeks || 'Semua data', { italic: true, color: W.abu }),
       judul(`${semua.length} pengajuan · diambil ${waktu(info.waktu)}`, { italic: true, color: W.abu }),
       kosong(),
@@ -229,6 +229,7 @@
     rows.push(kosong());
     [['Keterangan:', { bold: true, size: 10 }],
       ['• Padi dan jagung seharusnya diisi 2 MT dalam setahun.', { size: 10, color: W.abu }],
+      ['• Kopi tanaman tahunan, cukup diisi 1 PT.', { size: 10, color: W.abu }],
       ['• Aksi Batal: menarik pengajuan dari Korluh agar bisa diperbaiki.', { size: 10, color: W.abu }],
       ['• Aksi Hapus: menghapus pengajuan yang belum dikirim ke Korluh.', { size: 10, color: W.abu }],
       ['• Alat bantu tidak resmi, bukan aplikasi Kementan.', { size: 10, color: W.abu }],

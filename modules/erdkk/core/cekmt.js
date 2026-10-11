@@ -1,28 +1,36 @@
-// ================= CEK JUMLAH MT PADI & JAGUNG (HARUS 2 MT SETAHUN) ================= \\
-// Pengajuan padi/jagung yang komoditasnya terisi di 1 atau 3 MT (bukan tepat 2) ditandai salah input,
+// ================= CEK JUMLAH MT/PT PER KOMODITAS ================= \\
+// Aturan: padi & jagung harus tepat 2 MT setahun; kopi (tanaman tahunan) paling banyak 1 PT.
+// Pengajuan yang melanggar ditandai salah input,
 // lalu bisa ditarik (Batal, status Menunggu Korluh) atau dihapus (status Belum dikirim) untuk diperbaiki.
 // Tanpa DOM, bisa dites di Node.
 
 (function (root) {
   'use strict';
 
-  const KOMODITAS_WAJIB_2 = ['PADI', 'JAGUNG'];
+  // komoditas → { boleh(n): jumlah MT yang benar?, aturan: teks }
+  const ATURAN = {
+    PADI: { boleh: (n) => n === 2, aturan: 'harus 2 MT' },
+    JAGUNG: { boleh: (n) => n === 2, aturan: 'harus 2 MT' },
+    KOPI: { boleh: (n) => n <= 1, aturan: 'tanaman tahunan, maks 1 PT' },
+  };
+  const KOMODITAS_DICEK = Object.keys(ATURAN);
   const STATUS_DRAF = 1, STATUS_KORLUH = 2;
 
   /** Masalah MT di satu baris: [{ komoditas, mt: [1], jumlah: 1, luas }] — kosong bila semua benar. */
-  function masalahMt(b, komoditas = KOMODITAS_WAJIB_2) {
+  function masalahMt(b, komoditas = KOMODITAS_DICEK) {
     const hasil = [];
     for (const k of komoditas) {
       const mt = b.mt.map((m, i) => (m.komoditas.toUpperCase() === k ? i + 1 : 0)).filter(Boolean);
-      if (mt.length && mt.length !== 2) {
+      if (mt.length && !ATURAN[k].boleh(mt.length)) {
         hasil.push({ komoditas: k, mt, jumlah: mt.length, luas: Math.max(...mt.map((i) => b.mt[i - 1].luas || 0)) });
       }
     }
     return hasil;
   }
 
-  /** Teks ringkas: "PADI hanya MT1", "JAGUNG 3 MT (MT1, MT2, MT3)" */
+  /** Teks ringkas: "PADI hanya MT1", "JAGUNG 3 MT (MT1, MT2, MT3)", "KOPI 2 PT (MT1, MT2) — tahunan, maks 1 PT" */
   function teksMasalah(m) {
+    if (m.komoditas === 'KOPI') return `KOPI ${m.jumlah} PT (${m.mt.map((i) => 'MT' + i).join(', ')}), tahunan maks 1 PT`;
     return m.jumlah === 1 ? `${m.komoditas} hanya MT${m.mt[0]}` : `${m.komoditas} ${m.jumlah} MT (${m.mt.map((i) => 'MT' + i).join(', ')})`;
   }
 
@@ -30,11 +38,11 @@
   const aksiUntuk = (b) => (b.statusId === STATUS_KORLUH ? 'batal' : b.statusId === STATUS_DRAF ? 'hapus' : '');
 
   /**
-   * Cari baris bermasalah. f: { desa, poktan, komoditas ('' = padi & jagung), status ('' = aktif, 'semua', id) }
+   * Cari baris bermasalah. f: { desa, poktan, komoditas ('' = semua yang dicek), status ('' = aktif, 'semua', id) }
    * Return [{ b, masalah, aksi }] terurut desa → poktan → nama.
    */
   function cari(baris, f = {}) {
-    const kom = f.komoditas ? [f.komoditas] : KOMODITAS_WAJIB_2;
+    const kom = f.komoditas ? [f.komoditas] : KOMODITAS_DICEK;
     const out = [];
     for (const b of baris) {
       if (f.status === 'semua') { /* semua */ } else if (f.status) { if (String(b.statusId) !== String(f.status)) continue; } else if (b.dikecualikan) continue;
@@ -61,11 +69,12 @@
   }
 
   function hitung(item) {
-    const n = { total: item.length, batal: 0, hapus: 0, tanpaAksi: 0, padi: 0, jagung: 0 };
+    const n = { total: item.length, batal: 0, hapus: 0, tanpaAksi: 0, padi: 0, jagung: 0, kopi: 0 };
     for (const x of item) {
       if (x.aksi === 'batal') n.batal++; else if (x.aksi === 'hapus') n.hapus++; else n.tanpaAksi++;
       if (x.masalah.some((m) => m.komoditas === 'PADI')) n.padi++;
       if (x.masalah.some((m) => m.komoditas === 'JAGUNG')) n.jagung++;
+      if (x.masalah.some((m) => m.komoditas === 'KOPI')) n.kopi++;
     }
     return n;
   }
@@ -84,7 +93,7 @@
     return '';
   }
 
-  const api = { KOMODITAS_WAJIB_2, masalahMt, teksMasalah, aksiUntuk, cari, kelompokkan, hitung, cekSebelumAksi };
+  const api = { ATURAN, KOMODITAS_DICEK, masalahMt, teksMasalah, aksiUntuk, cari, kelompokkan, hitung, cekSebelumAksi };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkCekMt = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -122,7 +122,7 @@
           h('div', { class: 'judul' }, 'Asisten e-RDKK'),
           h('div', { class: 'sub' }, ({
             rekap: 'Rekap luas lahan per kampung, poktan, komoditas',
-            mt: 'Cek MT: padi & jagung harus 2 MT setahun',
+            mt: 'Cek MT: padi & jagung 2 MT, kopi maks 1 PT',
             dup: 'Cek duplikasi: baris identik di semua status',
           })[st.tab] + (tahun ? ` · Tahun ${tahun}` : ''))),
         h('div', { class: 'tombol-kepala' },
@@ -426,7 +426,7 @@
     return [
       st.fm.desa ? `Desa ${nama(p.desa, st.fm.desa)}` : 'Semua desa',
       st.fm.poktan ? `Poktan ${nama(p.poktan, st.fm.poktan)}` : 'semua poktan',
-      st.fm.komoditas || 'padi & jagung',
+      st.fm.komoditas || 'padi, jagung & kopi',
       st.fm.status === 'semua' ? 'semua status' : st.fm.status ? `status "${nama(p.status, st.fm.status)}"` : 'status aktif',
     ].join(' · ');
   }
@@ -456,17 +456,16 @@
       h('section', { class: 'filter-rekap' },
         sel('desa', st.fm.desa, p.desa, 'Kelurahan/Desa', [['', 'Semua desa']]),
         sel('poktan', st.fm.poktan, p.poktan, 'Kelompok Tani', [['', 'Semua poktan']]),
-        sel('komoditas', st.fm.komoditas, [], 'Komoditas', [['', 'Padi & Jagung'], ['PADI', 'PADI'], ['JAGUNG', 'JAGUNG']]),
+        sel('komoditas', st.fm.komoditas, [], 'Komoditas', [['', 'Padi, Jagung & Kopi'], ['PADI', 'PADI'], ['JAGUNG', 'JAGUNG'], ['KOPI', 'KOPI']]),
         sel('status', st.fm.status, p.status, 'Status', [['', 'Semua (kecuali ditolak/batal/Not Valid)'], ['semua', 'Semua status']])),
       h('section', { class: 'ringkas-atas' },
-        h('div', { class: 'angka-besar ' + (n.total ? 'merah' : 'hijau') }, h('b', {}, n.total), h('span', {}, 'pengajuan MT tidak 2')),
-        h('div', { class: 'angka-besar abu' }, h('b', {}, n.padi), h('span', {}, 'padi')),
-        h('div', { class: 'angka-besar abu' }, h('b', {}, n.jagung), h('span', {}, 'jagung')),
+        h('div', { class: 'angka-besar ' + (n.total ? 'merah' : 'hijau') }, h('b', {}, n.total), h('span', {}, 'pengajuan MT/PT salah')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.padi} / ${n.jagung} / ${n.kopi}`), h('span', {}, 'padi / jagung / kopi')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.batal} / ${n.hapus}`), h('span', {}, 'bisa Batal / Hapus'))),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Padi dan jagung harus diisi 2 MT dalam setahun. '),
-        'Yang hanya 1 MT atau 3 MT ditampilkan di sini. ', h('b', {}, 'Batal'), ' = tarik dari Korluh (status kembali "Belum dikirim") supaya bisa diperbaiki; ',
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Padi & jagung harus 2 MT setahun; kopi (tanaman tahunan) cukup 1 PT. '),
+        'Yang tidak sesuai ditampilkan di sini. ', h('b', {}, 'Batal'), ' = tarik dari Korluh (status kembali "Belum dikirim") supaya bisa diperbaiki; ',
         h('b', {}, 'Hapus'), ' = hapus permanen pengajuan yang belum dikirim ke Korluh.'),
-      !item.length ? h('div', { class: 'aman' }, '✅ Semua pengajuan padi & jagung sudah 2 MT.')
+      !item.length ? h('div', { class: 'aman' }, '✅ Semua pengajuan padi & jagung sudah 2 MT, dan kopi 1 PT.')
         : grup.map((d) => h('section', { class: 'grup-mt' },
           h('div', { class: 'grup-judul-mt' }, d.nama),
           h('ul', { class: 'daftar' }, d.poktan.map((pk) => {
@@ -478,7 +477,7 @@
                 h('button', { type: 'button', class: 'kartu-kepala', 'aria-expanded': String(buka), onclick: () => { st.terbukaMt = buka ? null : kunci; render(); } },
                   h('div', { class: 'kiri' },
                     h('div', { class: 'nama' }, pk.nama, h('span', { class: 'jumlah' }, `${pk.item.length}`)),
-                    h('div', { class: 'meta' }, [nn.padi && `${nn.padi} padi`, nn.jagung && `${nn.jagung} jagung`].filter(Boolean).join(' · ') +
+                    h('div', { class: 'meta' }, [nn.padi && `${nn.padi} padi`, nn.jagung && `${nn.jagung} jagung`, nn.kopi && `${nn.kopi} kopi`].filter(Boolean).join(' · ') +
                       ` · ${nn.batal} menunggu Korluh · ${nn.hapus} belum dikirim` + (nn.tanpaAksi ? ` · ${nn.tanpaAksi} di atas Korluh` : ''))),
                   h('span', { class: 'panah', 'aria-hidden': 'true' }, buka ? '▾' : '▸')),
                 h('div', { class: 'aksi-poktan' }, tombolAksi(pk.item, 'kecil'))),

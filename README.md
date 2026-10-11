@@ -114,9 +114,10 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
    dulu, lalu hapus. Kalau sudah diproses di atas Korluh (Kasie/Kabid/Kadis), koordinasikan dengan yang bersangkutan.
 5. Klik **Unduh Excel** untuk laporan (lembar Duplikasi + Ringkasan per kelompok tani).
 
-### Cek MT (padi & jagung harus 2 MT)
+### Cek MT (padi & jagung 2 MT, kopi maks 1 PT)
 
-Tab **Cek MT** menampilkan pengajuan **padi/jagung yang diisi 1 MT atau 3 MT** (seharusnya tepat 2 MT setahun),
+Tab **Cek MT** menampilkan pengajuan **padi/jagung yang diisi 1 MT atau 3 MT** (seharusnya tepat 2 MT setahun)
+dan **kopi yang diisi lebih dari 1 PT** (kopi tanaman tahunan),
 dikelompokkan per kampung dan kelompok tani, dengan filter desa, poktan, komoditas, dan status.
 
 - **Batal** (status *Menunggu persetujuan Korluh*): ditarik kembali menjadi *Belum dikirim* supaya bisa diperbaiki.
