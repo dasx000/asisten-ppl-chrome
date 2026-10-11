@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Asisten PPL",
-  "version": "0.2.0",
-  "description": "Alat bantu tidak resmi untuk tugas penyuluh di berbagai aplikasi. Modul: SIMLUH (update anggota poktan dari Excel).",
+  "version": "0.3.0",
+  "description": "Alat bantu tidak resmi untuk tugas penyuluh di berbagai aplikasi. Modul: SIMLUH (update anggota poktan dari Excel), e-Banper (kuota program).",
   "icons": {
     "16": "icons/ikon16.png",
     "48": "icons/ikon48.png",
@@ -32,12 +32,27 @@
         "modules/simluh/content/panel.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://ebanper.pertanian.go.id/penyuluh/*"],
+      "js": [
+        "common/modul.js",
+        "lib/xlsx.full.min.js",
+        "modules/ebanper/core/api.js",
+        "modules/ebanper/core/kuota.js",
+        "modules/ebanper/content/panel.js"
+      ],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": ["modules/simluh/content/panel.css"],
       "matches": ["https://simluh.pertanian.go.id/*"]
+    },
+    {
+      "resources": ["modules/ebanper/content/panel.css"],
+      "matches": ["https://ebanper.pertanian.go.id/*"]
     }
   ]
 }

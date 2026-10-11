@@ -12,6 +12,12 @@
       ket: 'Ubah & tambah anggota poktan dari file Cetak Excel, di halaman daftar anggota poktan.',
       situs: 'https://simluh.pertanian.go.id/',
     },
+    {
+      id: 'ebanper',
+      nama: 'e-Banper — Kuota Program',
+      ket: 'Lihat Rancangan Pusat, Telah Diajukan, dan Sisa kuota semua kegiatan di kabupaten Anda sekaligus.',
+      situs: 'https://ebanper.pertanian.go.id/penyuluh/dashboard',
+    },
   ];
 
   const kunci = (id) => `modul.${id}`;

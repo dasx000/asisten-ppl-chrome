@@ -11,6 +11,7 @@ Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Pytho
 | Modul | Situs | Fungsi |
 |---|---|---|
 | SIMLUH — Update dari Excel | simluh.pertanian.go.id | Ubah & tambah anggota poktan dari file Cetak Excel |
+| e-Banper — Kuota Program | ebanper.pertanian.go.id | Lihat Rancangan Pusat, Telah Diajukan, dan Sisa semua kegiatan sekaligus |
 
 ## Cara pasang (mode developer)
 
@@ -56,6 +57,30 @@ supaya angkanya tidak rusak menjadi `1,8E+15` atau berakhiran `0000`.
 
 ---
 
+## Modul e-Banper — Kuota Program
+
+Menampilkan kuota **semua kegiatan** bantuan di kabupaten Anda dalam satu daftar: **Rancangan Pusat**,
+**Telah Diajukan**, dan **Sisa yang bisa diajukan**. Tidak perlu lagi membuka form Tambah Usulan dan memilih
+kegiatan satu per satu.
+
+### Aman dipakai
+
+- **Hanya membaca data.** Modul ini tidak pernah membuat, mengubah, atau mengirim usulan.
+- Memakai sesi login e-Banper Anda sendiri. Data yang tampil otomatis sesuai kabupaten akun Anda.
+
+### Cara pakai
+
+1. Login e-Banper sebagai penyuluh seperti biasa.
+2. Di halaman mana pun di menu penyuluh, klik tombol hijau **Kuota Program** di pojok kanan bawah.
+3. Pertama kali dibuka, data diambil otomatis (sekitar 10 detik). Pembukaan berikutnya langsung menampilkan data terakhir.
+   Klik **Muat ulang data** untuk angka terbaru.
+4. Saring dengan kolom cari (misalnya `padi`, `traktor`, `pompa`), pilihan subsektor, atau tab **Masih ada sisa** / **Habis**.
+   Kegiatan tanpa kuota (Rancangan Pusat 0) disembunyikan, centang **Tampilkan tanpa kuota** untuk melihatnya.
+5. Klik **Rincian** pada kegiatan untuk melihat rincian output, unit cost, dan volume yang diajukan per kabupaten.
+6. Klik **Unduh Excel** untuk menyimpan rekap kuota.
+
+---
+
 ## Untuk pengembang
 
 ### Struktur
@@ -75,6 +100,12 @@ modules/
     content/panel.css
     test/                test Node (tidak ikut ZIP)
     demo/                pembuat video demo (tidak ikut ZIP)
+  ebanper/
+    core/api.js          GET ke /api/cpcl/* e-Banper dengan sesi login browser (hanya baca)
+    core/kuota.js        telusuri subsektor → bidang → komoditas → kegiatan, ambil volume_summary tiap kegiatan
+    content/panel.js     panel Kuota Program (Shadow DOM), simpanan terakhir di chrome.storage.local
+    content/panel.css
+    test/                test Node (tidak ikut ZIP)
 ```
 
 ### Menambah modul baru
