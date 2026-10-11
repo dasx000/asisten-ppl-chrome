@@ -380,6 +380,7 @@
       sel('status', st.fr.status, p.status, { label: 'Status', opsi: [['', 'Semua (kecuali ditolak/batal/Not Valid)'], ['semua', 'Semua status']] }));
 
     const sel1 = (t) => [h('td', { class: 'n' }, fmtKg(t.petani)), h('td', { class: 'n tebal' }, fmtLuas(t.luas)),
+      h('td', { class: 'n tanam' }, fmtLuas(t.luasTanam)),
       ...R.PUPUK_REKAP.map(([k]) => h('td', { class: 'n' }, fmtKg(t.pupuk[k])))];
     const body = [];
     for (const d of r.desa) {
@@ -394,14 +395,17 @@
       sel3,
       h('section', { class: 'ringkas-atas' },
         h('div', { class: 'angka-besar hijau' }, h('b', {}, fmtLuas(r.total.luas)), h('span', {}, 'ha luas lahan per tahun')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, fmtLuas(r.total.luasTanam)), h('span', {}, 'ha luas tanam (MT1+MT2+MT3)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, fmtKg(r.total.petani)), h('span', {}, 'petani (baris)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, r.perKomoditas.map((k) => k.komoditas).join(', ') || '-'), h('span', {}, 'komoditas'))),
       r.perKomoditas.length > 1 && h('p', { class: 'diperbarui' }, r.perKomoditas.map((k) => `${k.komoditas} ${fmtLuas(k.luas)} ha`).join(' · ')),
       h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Luas = luas lahan PER TAHUN, bukan per periode tanam (MT). '),
-        'Lahan jagung 0,5 ha yang ditanam di MT1 dan MT2 dihitung 0,5 ha, bukan 1 ha. Pupuk = jumlah MT1–MT3 dalam setahun.'),
+        'Lahan jagung 0,5 ha yang ditanam di MT1 dan MT2 dihitung 0,5 ha, bukan 1 ha. ',
+        h('b', {}, 'Luas Tanam'), ' = jumlah luas MT1+MT2+MT3 (contoh tadi = 1 ha), jadi Luas Tanam ÷ Luas/Tahun = berapa kali ditanam setahun. ',
+        'Pupuk = jumlah MT1–MT3 dalam setahun.'),
       !r.desa.length ? h('p', { class: 'kosong' }, 'Tidak ada data untuk filter ini.')
         : h('div', { class: 'tabel-rekap' }, h('table', {},
-          h('thead', {}, h('tr', {}, ['Kampung / Poktan', 'Komoditas', 'Petani', 'Luas/Tahun (ha)', 'Urea/Th (kg)', 'NPK/Th (kg)', 'NPK-F/Th (kg)', 'Organik/Th (kg)']
+          h('thead', {}, h('tr', {}, ['Kampung / Poktan', 'Komoditas', 'Petani', 'Luas/Tahun (ha)', 'Luas Tanam (ha)', 'Urea/Th (kg)', 'NPK/Th (kg)', 'NPK-F/Th (kg)', 'Organik/Th (kg)']
             .map((t, i) => h('th', { class: i > 1 ? 'n' : '' }, t)))),
           h('tbody', {}, body),
           h('tfoot', {}, h('tr', {}, h('td', { colspan: 2 }, 'TOTAL'), ...sel1(r.total))))),

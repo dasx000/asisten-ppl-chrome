@@ -75,3 +75,13 @@ test('filter komoditas: baris campuran (padi MT1 + jagung MT2) hanya dihitung ko
   assert.equal(luas('KOPI').total.petani, 1);
   assert.deepEqual(R.pilihan(DATA, NAMA).komoditas.map((k) => k.id), ['JAGUNG', 'KOPI', 'PADI']);
 });
+
+test('luas tanam = jumlah MT1+MT2+MT3, berdampingan dengan luas per tahun', () => {
+  assert.equal(R.perKomoditas(DATA[0])[0].luasTanam, 1); // jagung 0,5 di MT1 & MT2
+  assert.equal(R.perKomoditas(DATA[2])[0].luasTanam, 1.75); // padi 1 + 0,75
+  const r = R.rekap(R.saringBaris(DATA, {}), NAMA);
+  assert.equal(r.total.luas, 4.5);
+  assert.equal(r.total.luasTanam, 6.25); // jagung 1 + 1, padi 1,75, kopi 2 (1 MT), campuran 0,25 + 0,25
+  const teks = new TextDecoder().decode(X.buat(L.susunRekap({ filterTeks: 'x' }, r)));
+  assert.match(teks, /Luas Tanam MT1\+MT2\+MT3/);
+});

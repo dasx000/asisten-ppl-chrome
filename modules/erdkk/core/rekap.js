@@ -1,6 +1,7 @@
 // ================= REKAP LUAS LAHAN e-RDKK PER KAMPUNG → POKTAN → KOMODITAS ================= \\
 // Luas per tahun = luas LAHAN, dihitung sekali per baris per komoditas (MT tidak dijumlah; bila luas antar MT
-// berbeda diambil yang terbesar). Pupuk per tahun = jumlah MT1–MT3 untuk komoditas itu.
+// berbeda diambil yang terbesar). Luas tanam = jumlah luas MT1+MT2+MT3 (lahan × berapa kali ditanam).
+// Pupuk per tahun = jumlah MT1–MT3 untuk komoditas itu.
 // Data dihitung apa adanya (salinan dobel ikut terhitung). Tanpa DOM, bisa dites di Node.
 
 (function (root) {
@@ -15,9 +16,10 @@
     for (const m of b.mt) {
       if (!m.komoditas) continue;
       const k = m.komoditas.toUpperCase();
-      if (!peta.has(k)) peta.set(k, { komoditas: k, luas: 0, pupuk: Object.fromEntries(PUPUK_REKAP.map(([p]) => [p, 0])) });
+      if (!peta.has(k)) peta.set(k, { komoditas: k, luas: 0, luasTanam: 0, pupuk: Object.fromEntries(PUPUK_REKAP.map(([p]) => [p, 0])) });
       const x = peta.get(k);
       x.luas = Math.max(x.luas, m.luas || 0);
+      x.luasTanam = bulat(x.luasTanam + (m.luas || 0));
       for (const [p] of PUPUK_REKAP) x.pupuk[p] += m.pupuk[p] || 0;
     }
     return [...peta.values()];
@@ -37,10 +39,11 @@
     });
   }
 
-  const kosong = () => ({ petani: 0, luas: 0, pupuk: Object.fromEntries(PUPUK_REKAP.map(([p]) => [p, 0])) });
+  const kosong = () => ({ petani: 0, luas: 0, luasTanam: 0, pupuk: Object.fromEntries(PUPUK_REKAP.map(([p]) => [p, 0])) });
   function tambah(t, x) {
     t.petani += 1;
     t.luas = bulat(t.luas + x.luas);
+    t.luasTanam = bulat(t.luasTanam + x.luasTanam);
     for (const [p] of PUPUK_REKAP) t.pupuk[p] = bulat(t.pupuk[p] + x.pupuk[p]);
   }
 

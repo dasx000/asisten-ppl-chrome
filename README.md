@@ -121,6 +121,8 @@ beserta jumlah petani dan pupuk per tahun (Urea, NPK, NPK Formula, Organik).
 
 - **Luas = luas lahan per tahun**: dihitung sekali per petani per komoditas, MT1–MT3 tidak dijumlah
   (bila luas antar MT berbeda, diambil yang terbesar). Pupuk = jumlah MT1–MT3.
+- **Luas Tanam** = jumlah luas MT1+MT2+MT3, tampil berdampingan dengan Luas/Tahun. Luas Tanam ÷ Luas/Tahun
+  menunjukkan berapa kali lahan ditanam setahun (mis. padi yang hanya diisi MT1 akan sama dengan Luas/Tahun).
 - Data dihitung apa adanya, termasuk salinan dobel bila ada.
 - Filter **Kelurahan/Desa**, **Kelompok Tani**, **Komoditas**, dan **Status** (bawaan: semua kecuali ditolak/batal/Not Valid).
   Pengajuan campuran (mis. padi MT1 + jagung MT2) hanya dihitung bagian komoditas yang dipilih.
