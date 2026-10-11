@@ -14,7 +14,7 @@
   // Hanya setelah login (menu samping e-RDKK punya tautan Pengajuan)
   if (!document.querySelector('a[href$="/pengajuan"]')) return;
 
-  const API = window.ErdkkApi, D = window.ErdkkDuplikasi, L = window.ErdkkLaporan, R = window.ErdkkRekap;
+  const API = window.ErdkkApi, D = window.ErdkkDuplikasi, L = window.ErdkkLaporan, R = window.ErdkkRekap, M = window.ErdkkCekMt;
 
   const st = {
     buka: false,
@@ -32,6 +32,8 @@
     penuh: false, // panel dibesarkan selebar layar
     namaDesa: new Map(), // kode desa → nama
     fr: { desa: '', poktan: '', status: '', komoditas: '' }, // filter rekap ('' status = aktif)
+    fm: { desa: '', poktan: '', status: '', komoditas: '' }, // filter Cek MT
+    terbukaMt: null, // poktan yang rinciannya dibuka di Cek MT
   };
   const sibuk = () => st.tahap === 'memuat' || !!st.menghapus;
 
@@ -112,22 +114,24 @@
     if (!st.buka) return;
     const fokus = akar.activeElement && akar.activeElement.name;
     const tahun = st.baris[0] && st.baris[0].tahun;
-    laci.classList.toggle('lebar', st.tab === 'rekap');
+    laci.classList.toggle('lebar', st.tab !== 'dup');
     laci.classList.toggle('penuh', st.penuh);
     laci.replaceChildren(
       h('header', { class: 'kepala' },
         h('div', {},
           h('div', { class: 'judul' }, 'Asisten e-RDKK'),
-          h('div', { class: 'sub' }, st.tab === 'rekap'
-            ? `Rekap luas lahan per kampung, poktan, komoditas${tahun ? ` · Tahun ${tahun}` : ''}`
-            : `Cek duplikasi: baris identik di semua status${tahun ? ` · Tahun ${tahun}` : ''}`)),
+          h('div', { class: 'sub' }, ({
+            rekap: 'Rekap luas lahan per kampung, poktan, komoditas',
+            mt: 'Cek MT: padi & jagung harus 2 MT setahun',
+            dup: 'Cek duplikasi: baris identik di semua status',
+          })[st.tab] + (tahun ? ` · Tahun ${tahun}` : ''))),
         h('div', { class: 'tombol-kepala' },
           h('button', { class: 'tutup', type: 'button', title: st.penuh ? 'Kecilkan panel' : 'Perbesar panel selebar layar',
             'aria-label': st.penuh ? 'Kecilkan panel' : 'Perbesar panel', onclick: () => { st.penuh = !st.penuh; render(); } },
           st.penuh ? '⤡' : '⛶'),
           h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕'))),
       h('nav', { class: 'tab-utama', role: 'tablist' },
-        [['dup', '⧉ Cek Duplikasi'], ['rekap', '▦ Rekap Luas']].map(([k, l]) => h('button', {
+        [['dup', '⧉ Cek Duplikasi'], ['mt', '⚠ Cek MT'], ['rekap', '▦ Rekap Luas']].map(([k, l]) => h('button', {
           type: 'button', role: 'tab', 'aria-selected': String(st.tab === k), class: st.tab === k ? 'aktif' : '',
           disabled: !!st.menghapus, onclick: () => { st.tab = k; render(); },
         }, l))),
@@ -137,7 +141,7 @@
         st.menghapus && h('div', { class: 'progres' }, h('div', { class: 'progres-judul' }, st.menghapus.teks),
           st.menghapus.n > 1 && h('div', { class: 'bar' }, h('div', { class: 'bar-isi', style: `width:${Math.round((st.menghapus.i / st.menghapus.n) * 100)}%` }))),
         sibuk() && viewProgres(),
-        st.baris.length && (st.tab === 'rekap' ? viewRekap() : viewHasil())),
+        st.baris.length && (st.tab === 'rekap' ? viewRekap() : st.tab === 'mt' ? viewMt() : viewHasil())),
       viewAksi());
     if (fokus) {
       const el = akar.querySelector(`[name="${fokus}"]`);
@@ -234,6 +238,7 @@
   }
 
   function viewAksi() {
+    if (st.tab === 'mt') return viewAksiMt();
     if (st.tab === 'rekap') {
       return h('footer', { class: 'aksi' },
         h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : '↻ Baca ulang data'),
@@ -410,6 +415,155 @@
           h('tfoot', {}, h('tr', {}, h('td', { colspan: 2 }, 'TOTAL'), ...sel1(r.total))))),
       h('p', { class: 'diperbarui' }, 'Data dihitung apa adanya, termasuk salinan dobel. Bersihkan dulu lewat tab Cek Duplikasi supaya angkanya tepat.'),
     ];
+  }
+
+  // ─── Cek MT padi & jagung ──────────────────────────────────────────────────
+  const itemMt = () => M.cari(st.baris, st.fm);
+
+  function teksFilterMt() {
+    const p = R.pilihan(st.baris, st.namaDesa, st.fm.desa);
+    const nama = (arr, id) => (arr.find((x) => String(x.id) === String(id)) || {}).nama || id;
+    return [
+      st.fm.desa ? `Desa ${nama(p.desa, st.fm.desa)}` : 'Semua desa',
+      st.fm.poktan ? `Poktan ${nama(p.poktan, st.fm.poktan)}` : 'semua poktan',
+      st.fm.komoditas || 'padi & jagung',
+      st.fm.status === 'semua' ? 'semua status' : st.fm.status ? `status "${nama(p.status, st.fm.status)}"` : 'status aktif',
+    ].join(' · ');
+  }
+
+  function tombolAksi(item, ukuran) {
+    const bt = item.filter((x) => x.aksi === 'batal'), hp = item.filter((x) => x.aksi === 'hapus');
+    return [
+      bt.length > 0 && h('button', { type: 'button', class: `batal ${ukuran}`, disabled: sibuk(), onclick: () => aksiMt(bt, 'batal') },
+        ukuran ? `↩ Batal ${bt.length}` : 'Batal'),
+      hp.length > 0 && h('button', { type: 'button', class: `hapus ${ukuran}`, disabled: sibuk(), onclick: () => aksiMt(hp, 'hapus') },
+        ukuran ? `🗑 Hapus ${hp.length}` : 'Hapus'),
+    ];
+  }
+
+  function viewMt() {
+    const p = R.pilihan(st.baris, st.namaDesa, st.fm.desa);
+    if (st.fm.poktan && !p.poktan.some((x) => x.id === st.fm.poktan)) st.fm.poktan = '';
+    const item = itemMt();
+    const n = M.hitung(item);
+    const grup = M.kelompokkan(item, st.namaDesa);
+    const ubah = (k, v) => { st.fm[k] = v; if (k === 'desa') st.fm.poktan = ''; st.terbukaMt = null; render(); };
+    const sel = (name, nilai, opsi, label, awal) => h('label', { class: 'pilih' }, h('span', {}, label),
+      h('select', { name: 'mt-' + name, onchange: (e) => ubah(name, e.target.value) },
+        awal.map(([v, l]) => h('option', { value: v, selected: nilai === v }, l)),
+        opsi.map((o) => h('option', { value: String(o.id), selected: nilai === String(o.id) }, o.nama))));
+    return [
+      h('section', { class: 'filter-rekap' },
+        sel('desa', st.fm.desa, p.desa, 'Kelurahan/Desa', [['', 'Semua desa']]),
+        sel('poktan', st.fm.poktan, p.poktan, 'Kelompok Tani', [['', 'Semua poktan']]),
+        sel('komoditas', st.fm.komoditas, [], 'Komoditas', [['', 'Padi & Jagung'], ['PADI', 'PADI'], ['JAGUNG', 'JAGUNG']]),
+        sel('status', st.fm.status, p.status, 'Status', [['', 'Semua (kecuali ditolak/batal/Not Valid)'], ['semua', 'Semua status']])),
+      h('section', { class: 'ringkas-atas' },
+        h('div', { class: 'angka-besar ' + (n.total ? 'merah' : 'hijau') }, h('b', {}, n.total), h('span', {}, 'pengajuan MT tidak 2')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, n.padi), h('span', {}, 'padi')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, n.jagung), h('span', {}, 'jagung')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.batal} / ${n.hapus}`), h('span', {}, 'bisa Batal / Hapus'))),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Padi dan jagung harus diisi 2 MT dalam setahun. '),
+        'Yang hanya 1 MT atau 3 MT ditampilkan di sini. ', h('b', {}, 'Batal'), ' = tarik dari Korluh (status kembali "Belum dikirim") supaya bisa diperbaiki; ',
+        h('b', {}, 'Hapus'), ' = hapus permanen pengajuan yang belum dikirim ke Korluh.'),
+      !item.length ? h('div', { class: 'aman' }, '✅ Semua pengajuan padi & jagung sudah 2 MT.')
+        : grup.map((d) => h('section', { class: 'grup-mt' },
+          h('div', { class: 'grup-judul-mt' }, d.nama),
+          h('ul', { class: 'daftar' }, d.poktan.map((pk) => {
+            const kunci = d.desa + '|' + pk.id;
+            const buka = st.terbukaMt === kunci;
+            const nn = M.hitung(pk.item);
+            return h('li', { class: 'kartu luput' },
+              h('div', { class: 'kartu-mt' },
+                h('button', { type: 'button', class: 'kartu-kepala', 'aria-expanded': String(buka), onclick: () => { st.terbukaMt = buka ? null : kunci; render(); } },
+                  h('div', { class: 'kiri' },
+                    h('div', { class: 'nama' }, pk.nama, h('span', { class: 'jumlah' }, `${pk.item.length}`)),
+                    h('div', { class: 'meta' }, [nn.padi && `${nn.padi} padi`, nn.jagung && `${nn.jagung} jagung`].filter(Boolean).join(' · ') +
+                      ` · ${nn.batal} menunggu Korluh · ${nn.hapus} belum dikirim` + (nn.tanpaAksi ? ` · ${nn.tanpaAksi} di atas Korluh` : ''))),
+                  h('span', { class: 'panah', 'aria-hidden': 'true' }, buka ? '▾' : '▸')),
+                h('div', { class: 'aksi-poktan' }, tombolAksi(pk.item, 'kecil'))),
+              buka && h('div', { class: 'rinci' }, h('table', {},
+                h('thead', {}, h('tr', {}, ['Nama', 'NIK', 'Masalah', 'Luas', 'Status', 'Aksi'].map((t) => h('th', {}, t)))),
+                h('tbody', {}, pk.item.map((x) => h('tr', { class: x.b.statusId === D.STATUS_DRAF ? 'draf' : '' },
+                  h('td', {}, x.b.nama), h('td', {}, x.b.nik), h('td', { class: 'masalah' }, x.masalah.map(M.teksMasalah).join('; ')),
+                  h('td', {}, fmtLuas(Math.max(...x.masalah.map((m) => m.luas)))), h('td', {}, x.b.status),
+                  h('td', {}, x.aksi ? tombolAksi([x], '') : h('span', { class: 'tetap' }, '—'))))))));
+          })))),
+    ];
+  }
+
+  function viewAksiMt() {
+    const item = st.baris.length ? itemMt() : [];
+    const bt = item.filter((x) => x.aksi === 'batal'), hp = item.filter((x) => x.aksi === 'hapus');
+    return h('footer', { class: 'aksi' },
+      st.menghapus && st.menghapus.n > 1 && h('button', { class: 'kedua penuh', type: 'button', disabled: st.henti,
+        onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : '⏸ Hentikan'),
+      !sibuk() && bt.length > 0 && h('button', { class: 'batal-semua', type: 'button', onclick: () => aksiMt(bt, 'batal') },
+        `↩ Batal semua yang tampil (${bt.length})`),
+      !sibuk() && hp.length > 0 && h('button', { class: 'hapus-semua setengah', type: 'button', onclick: () => aksiMt(hp, 'hapus') },
+        `🗑 Hapus semua yang tampil (${hp.length})`),
+      h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memproses…' : '↻ Baca ulang data'),
+      item.length ? h('button', { class: 'kedua', type: 'button', onclick: unduhMt }, 'Unduh Excel') : null,
+      h('p', { class: 'aksi-ket' }, 'Batal/Hapus hanya terjadi setelah Anda menyetujui konfirmasi. Data dicek ulang sebelum setiap aksi. ' +
+        'Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
+  }
+
+  async function aksiMt(item, jenis) {
+    if (sibuk() || !item.length) return;
+    const poktan = new Map();
+    for (const x of item) poktan.set(x.b.poktan, (poktan.get(x.b.poktan) || 0) + 1);
+    const daftar = [...poktan].map(([p, c]) => `• ${p}: ${c} pengajuan`).join('\n');
+    const nama = item.slice(0, 12).map((x) => `  - ${x.b.nama} (${x.masalah.map(M.teksMasalah).join('; ')})`).join('\n') +
+      (item.length > 12 ? `\n  … dan ${item.length - 12} lainnya` : '');
+    const tanya = jenis === 'batal'
+      ? `Batalkan ${item.length} pengajuan dari Korluh?\n\n${daftar}\n${nama}\n\nStatusnya kembali "Belum dikirim ke Korluh" sehingga bisa diperbaiki, lalu dikirim ulang.`
+      : `HAPUS PERMANEN ${item.length} pengajuan dari e-RDKK?\n\n${daftar}\n${nama}\n\nData petani ini akan hilang dari e-RDKK dan harus diunggah ulang. Tidak bisa dibatalkan.`;
+    if (!window.confirm(tanya)) return;
+    if (jenis === 'hapus' && item.length > 1) {
+      const ketik = window.prompt(`Untuk menghapus ${item.length} pengajuan sekaligus, ketik HAPUS lalu tekan OK.`);
+      if (String(ketik || '').trim().toUpperCase() !== 'HAPUS') { st.info = { jenis: 'galat', teks: 'Penghapusan dibatalkan (konfirmasi tidak sesuai).' }; render(); return; }
+    }
+    const kata = jenis === 'batal' ? 'Membatalkan' : 'Menghapus';
+    st.menghapus = { teks: 'Memeriksa data terbaru…' };
+    st.henti = false;
+    st.info = null;
+    render();
+    const ok = [], gagal = [];
+    let dilewati = 0;
+    try {
+      const terbaru = (await API.semuaPengajuan()).map(D.normalisasi);
+      for (const [i, x] of item.entries()) {
+        if (st.henti) { dilewati = item.length - i; break; }
+        st.menghapus = { teks: `${kata} ${i + 1} dari ${item.length}: ${x.b.nama} (ID ${x.b.id})…`, i, n: item.length };
+        render();
+        const alasan = M.cekSebelumAksi(terbaru, x.b, jenis);
+        if (alasan) { gagal.push(`${x.b.nama}: ${alasan}`); continue; }
+        try {
+          await (jenis === 'batal' ? API.batal(x.b.id) : API.hapus(x.b.id));
+          ok.push(x.b.id);
+        } catch (e) {
+          if (e instanceof API.SesiHabis) throw e;
+          gagal.push(`${x.b.nama}: ${e.message}`);
+        }
+      }
+    } catch (e) {
+      console.error('[Asisten e-RDKK]', e);
+      gagal.push(e.message);
+    }
+    st.menghapus = null;
+    st.henti = false;
+    const kerja = jenis === 'batal' ? 'dibatalkan (kembali "Belum dikirim")' : 'dihapus';
+    const henti = dilewati ? ` Dihentikan, ${dilewati} belum diproses.` : '';
+    st.info = gagal.length || dilewati
+      ? { jenis: 'galat', teks: `${ok.length} pengajuan ${kerja}.${henti}${gagal.length ? ` Dilewati: ${gagal.slice(0, 10).join('; ')}${gagal.length > 10 ? ` … (+${gagal.length - 10})` : ''}` : ''}` }
+      : { jenis: 'ok', teks: `✅ ${ok.length} pengajuan ${kerja}. Data sudah dibaca ulang.` };
+    await muat(true);
+  }
+
+  function unduhMt() {
+    const grup = M.kelompokkan(itemMt(), st.namaDesa);
+    const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterMt() };
+    unduhFile(window.AsistenExcel.buat(L.susunCekMt(info, grup, M.teksMasalah)), 'Cek MT e-RDKK');
   }
 
   function unduhRekap() {

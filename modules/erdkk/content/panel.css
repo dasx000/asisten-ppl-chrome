@@ -188,6 +188,23 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .tabel-rekap td.poktan { padding-left: 18px; font-weight: 600; white-space: normal; }
 .tabel-rekap tr.sub td { background: var(--abu-muda); font-style: italic; }
 .tabel-rekap tfoot td { background: var(--hijau); color: #fff; font-weight: 700; border-bottom: 0; }
+.grup-mt { margin-top: 14px; }
+.grup-judul-mt { font-weight: 700; font-size: 13px; text-transform: uppercase; color: var(--hijau-tua); margin-bottom: 6px; }
+.kartu-mt { display: flex; align-items: center; gap: 8px; }
+.kartu-mt .kartu-kepala { flex: 1; }
+.aksi-poktan { display: flex; gap: 6px; padding-right: 12px; flex: none; }
+button.batal, button.hapus { padding: 4px 10px; border-radius: 7px; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+button.batal { border: 1.5px solid #f1d48a; color: var(--kuning); }
+button.batal:hover:not(:disabled) { background: var(--kuning-muda); }
+button.hapus { border: 1.5px solid #f1b8b2; color: var(--merah); }
+button.hapus:hover:not(:disabled) { background: var(--merah-muda); }
+button.batal.kecil, button.hapus.kecil { padding: 6px 11px; font-size: 12.5px; }
+.rinci td.masalah { color: var(--merah); }
+.batal-semua {
+  flex: 1 1 45%; padding: 10px 14px; border: 0; border-radius: var(--radius); background: var(--kuning); color: #fff; font-weight: 600;
+}
+.batal-semua:hover { background: #7a5200; }
+.hapus-semua.setengah { flex: 1 1 45%; flex-basis: 45%; }
 .info { margin-bottom: 12px; padding: 11px 13px; border-radius: var(--radius); font-weight: 500; }
 .info.ok { background: var(--hijau-muda); color: var(--hijau-tua); border: 1px solid #bfe0cc; }
 .info.galat { background: var(--merah-muda); color: var(--merah); border: 1px solid #f5c2bd; }

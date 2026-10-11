@@ -186,7 +186,58 @@
     return [s1, s2];
   }
 
-  const api = { susun, susunRekap, waktu };
+  // ─── Cek MT padi/jagung ────────────────────────────────────────────────────
+  /** info: { waktu, tahun, filterTeks } · grup: hasil ErdkkCekMt.kelompokkan · teksMasalah: fungsi */
+  function susunCekMt(info, grup, teksMasalah) {
+    const K = [['No', 5], ['Desa', 14], ['Kelompok Tani', 20], ['Nama Petani', 24], ['NIK', 19], ['Masalah MT', 28],
+      ['Luas (ha)', 9], ['Status', 26], ['Aksi', 10], ['ID Pengajuan', 12]];
+    const N = K.length;
+    const kosong = () => Array.from({ length: N }, () => null);
+    const judul = (v, s) => { const r = kosong(); r[0] = isi(v, s); return r; };
+    const semua = grup.flatMap((d) => d.poktan.flatMap((p) => p.item));
+    const rows = [
+      judul('CEK MT PADI & JAGUNG e-RDKK', { bold: true, size: 15, color: W.hijauTua }),
+      judul(`Tahun ${info.tahun || ''} · padi/jagung harus 2 MT setahun; yang 1 atau 3 MT ditandai`, { bold: true }),
+      judul(info.filterTeks || 'Semua data', { italic: true, color: W.abu }),
+      judul(`${semua.length} pengajuan · diambil ${waktu(info.waktu)}`, { italic: true, color: W.abu }),
+      kosong(),
+      K.map(([k]) => isi(k, { ...dasar, bold: true, color: W.putih, fill: W.hijau, align: 'center', wrap: true })),
+    ];
+    const barisHeader = rows.length;
+    let no = 0;
+    for (const d of grup) {
+      for (const p of d.poktan) {
+        const g = Array.from({ length: N }, () => isi('', { ...dasar, fill: W.hijauMuda }));
+        g[0] = isi(`${d.nama} — ${p.nama} — ${p.item.length} pengajuan`, { ...dasar, fill: W.hijauMuda, bold: true, color: W.hijauTua });
+        rows.push(g);
+        for (const x of p.item) {
+          no++;
+          const b = x.b;
+          rows.push([
+            isi(no, { ...dasar, align: 'center' }), isi(d.nama, dasar), isi(p.nama, dasar), isi(b.nama, { ...dasar, bold: true }),
+            isi(b.nik, { ...dasar, align: 'center' }),
+            isi(x.masalah.map(teksMasalah).join('; '), { ...dasar, color: W.merah }),
+            isi(Math.max(...x.masalah.map((m) => m.luas)), { ...dasar, fmt: '0.00', align: 'right' }),
+            isi(b.status, { ...dasar, fill: b.statusId === 1 ? W.biruMuda : W.hijauMuda, color: b.statusId === 1 ? W.biru : W.hijauTua }),
+            isi(x.aksi === 'batal' ? 'Batal' : x.aksi === 'hapus' ? 'Hapus' : '-', { ...dasar, align: 'center' }),
+            isi(String(b.id), { ...dasar, align: 'center', color: W.abu }),
+          ]);
+        }
+      }
+    }
+    const akhir = rows.length;
+    rows.push(kosong());
+    [['Keterangan:', { bold: true, size: 10 }],
+      ['• Padi dan jagung seharusnya diisi 2 MT dalam setahun.', { size: 10, color: W.abu }],
+      ['• Aksi Batal: menarik pengajuan dari Korluh agar bisa diperbaiki.', { size: 10, color: W.abu }],
+      ['• Aksi Hapus: menghapus pengajuan yang belum dikirim ke Korluh.', { size: 10, color: W.abu }],
+      ['• Alat bantu tidak resmi, bukan aplikasi Kementan.', { size: 10, color: W.abu }],
+    ].forEach(([v, g]) => rows.push(judul(v, g)));
+    return [{ nama: 'Cek MT', kolom: K.map(([, w]) => w), baris: rows, tinggi: { 0: 24, [barisHeader - 1]: 30 }, bekukan: barisHeader,
+      filter: semua.length ? `A${barisHeader}:J${akhir}` : null, lanskap: true, judulCetak: `${barisHeader}:${barisHeader}` }];
+  }
+
+  const api = { susun, susunRekap, susunCekMt, waktu };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkLaporan = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
