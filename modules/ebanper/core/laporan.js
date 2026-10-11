@@ -1,5 +1,5 @@
 // ================= TATA LETAK LAPORAN EXCEL KUOTA ================= \\
-// Menyusun lembar "Kuota" (dikelompokkan per subsektor, warna status) dan "Ringkasan" untuk EbanperExcel.buat.
+// Menyusun lembar "Kuota" (dikelompokkan per subsektor, warna status) dan "Ringkasan" untuk AsistenExcel.buat.
 // Tanpa DOM, bisa dites di Node.
 
 (function (root) {
@@ -40,7 +40,7 @@
 
   /**
    * data: { kabupaten, tahun, waktu } · baris: hasil EbanperKuota (sudah tersaring & terurut)
-   * Return [sheetKuota, sheetRingkasan] untuk EbanperExcel.buat
+   * Return [sheetKuota, sheetRingkasan] untuk AsistenExcel.buat
    */
   function susun(data, baris) {
     const kab = rapikanWilayah(data.kabupaten);

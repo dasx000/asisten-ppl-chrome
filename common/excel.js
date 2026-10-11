@@ -1,4 +1,4 @@
-// ================= PENULIS EXCEL (.xlsx) BERGAYA, TANPA PUSTAKA ================= \\
+// ================= PENULIS EXCEL (.xlsx) BERGAYA, TANPA PUSTAKA (dipakai bersama semua modul) ================= \\
 // SheetJS versi komunitas tidak menulis gaya sel (warna, garis, tebal), jadi file .xlsx dirakit sendiri:
 // XML SpreadsheetML + ZIP tanpa kompresi. Mendukung: gaya sel, lebar kolom, gabung sel, bekukan baris,
 // filter otomatis, tinggi baris, dan pengaturan cetak (lanskap, muat 1 halaman lebar). Bisa dites di Node.
@@ -189,5 +189,5 @@
 
   const api = { buat, kolom, alamat, crc32 };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else root.EbanperExcel = api;
+  else root.AsistenExcel = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

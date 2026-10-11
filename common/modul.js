@@ -18,6 +18,12 @@
       ket: 'Lihat Rancangan Pusat, Telah Diajukan, dan Sisa kuota semua kegiatan di kabupaten Anda sekaligus.',
       situs: 'https://ebanper.pertanian.go.id/penyuluh/dashboard',
     },
+    {
+      id: 'erdkk',
+      nama: 'e-RDKK — Cek Duplikasi',
+      ket: 'Cari NIK dobel di semua status pengajuan (bawaan e-RDKK hanya memeriksa yang belum dikirim ke Korluh).',
+      situs: 'https://erdkk25.pertanian.go.id/pengajuan',
+    },
   ];
 
   const kunci = (id) => `modul.${id}`;

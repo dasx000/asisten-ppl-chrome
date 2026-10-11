@@ -248,7 +248,7 @@
     const tgl = `${t.getFullYear()}-${dua(t.getMonth() + 1)}-${dua(t.getDate())} ${dua(t.getHours())}.${dua(t.getMinutes())}`;
     // Semua subsektor & status; ikut pilihan "Tampilkan tanpa kuota"
     const baris = K.saring(d.baris, { tampilKosong: st.f.tampilKosong });
-    const isi = window.EbanperExcel.buat(window.EbanperLaporan.susun(d, baris));
+    const isi = window.AsistenExcel.buat(window.EbanperLaporan.susun(d, baris));
     const url = URL.createObjectURL(new Blob([isi], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
     const kab = window.EbanperLaporan.rapikanWilayah(d.kabupaten) || 'Kabupaten';
     const a = h('a', { href: url, download: `Kuota e-Banper - ${kab.replace(/[\\/:*?"<>|]/g, '')} - ${tgl}.xlsx` });

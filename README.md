@@ -12,6 +12,7 @@ Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Pytho
 |---|---|---|
 | SIMLUH — Update dari Excel | simluh.pertanian.go.id | Ubah & tambah anggota poktan dari file Cetak Excel |
 | e-Banper — Kuota Program | ebanper.pertanian.go.id | Lihat Rancangan Pusat, Telah Diajukan, dan Sisa semua kegiatan sekaligus |
+| e-RDKK — Cek Duplikasi | erdkk25.pertanian.go.id | Cari data ter-upload 2x di **semua** status, bukan hanya yang belum dikirim ke Korluh |
 
 ## Cara pasang (mode developer)
 
@@ -82,6 +83,30 @@ kegiatan satu per satu.
 
 ---
 
+## Modul e-RDKK — Cek Duplikasi
+
+Menu **Monitoring Duplikasi** bawaan e-RDKK hanya memeriksa pengajuan berstatus **Belum dikirim ke Korluh**.
+Data yang sama ter-upload 2x tidak ketahuan kalau salah satunya sudah dikirim (Menunggu persetujuan Korluh/Kasie/…)
+atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik di semua kolom**), tapi memeriksa **semua status**.
+
+### Aman dipakai
+
+- **Hanya membaca data.** Tidak menghapus, mengirim, atau mengubah pengajuan.
+- Data berisi NIK, jadi **tidak disimpan** di browser. Data selalu dibaca ulang saat panel dibuka.
+- Status ditolak/batal/Not Valid (mis. NIK meninggal) tidak ikut dihitung.
+
+### Cara pakai
+
+1. Login e-RDKK, buka menu mana saja. Klik tombol hijau **Cek Duplikasi** di pojok kanan bawah.
+2. Panel langsung membaca semua pengajuan dan menampilkan data dobel. Yang ditandai kuning **Tidak terdeteksi e-RDKK**
+   adalah yang luput dari Monitoring Duplikasi bawaan.
+3. Saring per kelompok tani, cari nama/NIK, atau pilih tab **Tidak terdeteksi e-RDKK** / **Lintas status**.
+4. Klik kartu untuk melihat baris-barisnya. Baris status **Belum dikirim ke Korluh** (biru) bisa Anda hapus sendiri
+   di menu Pengajuan. Kalau semuanya sudah dikirim, koordinasikan dengan Korluh.
+5. Klik **Unduh Excel** untuk laporan (lembar Duplikasi + Ringkasan per kelompok tani).
+
+---
+
 ## Untuk pengembang
 
 ### Struktur
@@ -89,6 +114,7 @@ kegiatan satu per satu.
 ```
 manifest.json            daftar izin & content script semua modul
 common/modul.js          daftar modul (DAFTAR) + saklar on/off (chrome.storage.sync)
+common/excel.js          penulis .xlsx bergaya (warna, garis, filter, bekukan header) tanpa pustaka, dipakai modul e-Banper & e-RDKK
 popup/                   menu saat ikon ekstensi diklik
 lib/xlsx.full.min.js     SheetJS 0.20.3 (Apache-2.0, lihat lib/LICENSE-sheetjs.txt), dipakai bersama
 icons/
@@ -104,9 +130,15 @@ modules/
   ebanper/
     core/api.js          GET ke /api/cpcl/* e-Banper dengan sesi login browser (hanya baca)
     core/kuota.js        telusuri subsektor → bidang → komoditas → kegiatan, ambil volume_summary tiap kegiatan
-    core/excel.js        penulis .xlsx bergaya (warna, garis, filter, bekukan header) tanpa pustaka; SheetJS gratis tidak menulis gaya
     core/laporan.js      tata letak Excel: lembar Kuota (per subsektor, warna status) + Ringkasan
     content/panel.js     panel Kuota Program (Shadow DOM), simpanan terakhir di chrome.storage.local
+    content/panel.css
+    test/                test Node (tidak ikut ZIP)
+  erdkk/
+    core/api.js          GET /api/pengajuan (semua status) per 500 baris dengan sesi login browser
+    core/duplikasi.js    sidik baris (semua kolom kecuali id/status/cap waktu) → kelompok identik lintas status
+    core/laporan.js      tata letak Excel duplikasi + ringkasan per kelompok tani
+    content/panel.js     panel Cek Duplikasi (Shadow DOM), data tidak disimpan
     content/panel.css
     test/                test Node (tidak ikut ZIP)
 ```

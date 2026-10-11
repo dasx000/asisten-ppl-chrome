@@ -1,7 +1,7 @@
 // Jalankan (dari root): npm test
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const X = require('../core/excel.js');
+const X = require('../../../common/excel.js');
 const L = require('../core/laporan.js');
 
 /** Baca ZIP tanpa kompresi hasil X.buat → Map nama → teks, sekaligus cek CRC. */
