@@ -99,6 +99,12 @@
     return peta;
   }
 
+  /** Master Kelompok Tani wilayah akun (sumber menu Master Data → Kelompok Tani). */
+  async function semuaPoktan(opsi = {}) {
+    const j = await ambilJson('/api/poktan?draw=1&start=0&length=-1', opsi.fetch);
+    return Array.isArray(j) ? j : j.data || [];
+  }
+
   /** Token CSRF halaman e-RDKK (meta csrf-token), sama seperti yang dipakai tombol Hapus bawaan. */
   function tokenHalaman(doc = root.document) {
     const m = doc && doc.querySelector('meta[name="csrf-token"]');
@@ -148,7 +154,7 @@
   const batal = (id, opsi) => kirimAksi('/api/batal-pengajuan',
     { id: String(id), sub_district_code: '', kelompokTani: '' }, 'pembatalan', opsi);
 
-  const api = { ServerSibuk, SesiHabis, ambilJson, semuaPengajuan, namaDesa, desaDariJson, tokenHalaman, hapus, batal, PER_HALAMAN };
+  const api = { ServerSibuk, SesiHabis, ambilJson, semuaPengajuan, semuaPoktan, namaDesa, desaDariJson, tokenHalaman, hapus, batal, PER_HALAMAN };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkApi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

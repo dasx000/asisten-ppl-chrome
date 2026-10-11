@@ -205,6 +205,12 @@ button.batal.kecil, button.hapus.kecil { padding: 6px 11px; font-size: 12.5px; }
 }
 .batal-semua:hover { background: #7a5200; }
 .hapus-semua.setengah { flex: 1 1 45%; flex-basis: 45%; }
+.chip.kecil { margin-left: 6px; padding: 0 7px; font-size: 10.5px; vertical-align: 1px; }
+.chip.hijau { background: var(--hijau-muda); color: var(--hijau-tua); }
+.chip.merah { background: var(--merah-muda); color: var(--merah); }
+.tabel-rekap td.komoditas-up { white-space: normal; color: var(--teks); }
+.filter-rekap input[type="search"] { width: 100%; padding: 8px 9px; border: 1.5px solid var(--garis); border-radius: 8px; background: #fff; font-size: 13px; }
+.ringkas-atas + .bar { margin: -2px 0 10px; height: 8px; }
 .info { margin-bottom: 12px; padding: 11px 13px; border-radius: var(--radius); font-weight: 500; }
 .info.ok { background: var(--hijau-muda); color: var(--hijau-tua); border: 1px solid #bfe0cc; }
 .info.galat { background: var(--merah-muda); color: var(--merah); border: 1px solid #f5c2bd; }

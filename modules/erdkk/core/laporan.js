@@ -238,7 +238,66 @@
       filter: semua.length ? `A${barisHeader}:J${akhir}` : null, lanskap: true, judulCetak: `${barisHeader}:${barisHeader}` }];
   }
 
-  const api = { susun, susunRekap, susunCekMt, waktu };
+  // ─── Status upload per poktan ──────────────────────────────────────────────
+  /** info: { waktu, tahun, filterTeks } · list: hasil ErdkkUpload.saring · ringkas: ErdkkUpload.perDesa(list) */
+  function susunUpload(info, list, ringkas, teksKomoditas) {
+    const K = [['No', 5], ['Desa', 18], ['Kelompok Tani', 26], ['Status Upload', 14], ['Jumlah Pengajuan', 11], ['Komoditas yang Diupload', 44], ['Catatan', 26]];
+    const N = K.length;
+    const kosong = () => Array.from({ length: N }, () => null);
+    const judul = (v, s) => { const r = kosong(); r[0] = isi(v, s); return r; };
+    const t = ringkas.total;
+    const rows = [
+      judul('STATUS UPLOAD RDKK PER KELOMPOK TANI', { bold: true, size: 15, color: W.hijauTua }),
+      judul(`Tahun ${info.tahun || ''} · sudah upload = punya ≥1 pengajuan aktif`, { bold: true }),
+      judul(info.filterTeks || 'Semua', { italic: true, color: W.abu }),
+      judul(`${t.total} kelompok: ${t.sudah} sudah upload, ${t.belum} belum · diambil ${waktu(info.waktu)}`, { italic: true, color: W.abu }),
+      kosong(),
+      K.map(([k]) => isi(k, { ...dasar, bold: true, color: W.putih, fill: W.hijau, align: 'center', wrap: true })),
+    ];
+    const barisHeader = rows.length;
+    let no = 0, desa = null;
+    for (const p of list) {
+      if (p.desa !== desa) {
+        desa = p.desa;
+        const d = ringkas.desa.find((x) => x.desa === desa) || { sudah: 0, total: 0 };
+        const g = Array.from({ length: N }, () => isi('', { ...dasar, fill: W.hijauMuda }));
+        g[0] = isi(`${desa} — ${d.sudah} dari ${d.total} sudah upload`, { ...dasar, fill: W.hijauMuda, bold: true, color: W.hijauTua });
+        rows.push(g);
+      }
+      no++;
+      rows.push([
+        isi(no, { ...dasar, align: 'center' }), isi(p.desa, dasar), isi(p.nama, { ...dasar, bold: true }),
+        isi(p.sudah ? 'Sudah' : 'Belum', { ...dasar, bold: true, align: 'center', fill: p.sudah ? W.hijauMuda : W.kuningMuda, color: p.sudah ? W.hijauTua : W.merah }),
+        isi(p.pengajuan || '', { ...dasar, align: 'center' }),
+        isi(teksKomoditas(p), { ...dasar, wrap: true }),
+        isi([p.kwt && 'KWT', p.dobelMaster && 'Nama tercatat dobel di master', p.diluarMaster && 'Tidak ditemukan di master poktan'].filter(Boolean).join('; '), { ...dasar, color: W.abu, wrap: true }),
+      ]);
+    }
+    const akhir = rows.length;
+    rows.push(kosong());
+    [['Keterangan:', { bold: true, size: 10 }],
+      ['• Sudah upload = punya minimal 1 pengajuan (status apa pun kecuali ditolak/batal/Not Valid).', { size: 10, color: W.abu }],
+      ['• Daftar kelompok dari menu Master Data → Kelompok Tani; dicocokkan dengan nama desa + nama poktan.', { size: 10, color: W.abu }],
+      ['• Alat bantu tidak resmi, bukan aplikasi Kementan.', { size: 10, color: W.abu }],
+    ].forEach(([v, g]) => rows.push(judul(v, g)));
+    const s1 = { nama: 'Status Upload', kolom: K.map(([, w]) => w), baris: rows, tinggi: { 0: 24, [barisHeader - 1]: 30 }, bekukan: barisHeader,
+      filter: list.length ? `A${barisHeader}:G${akhir}` : null, lanskap: true, judulCetak: `${barisHeader}:${barisHeader}` };
+    const H = ['Desa', 'Jumlah Kelompok', 'Sudah Upload', 'Belum Upload', '% Sudah'];
+    const rr = [
+      [isi('RINGKASAN PER DESA', { bold: true, size: 13, color: W.hijauTua }), null, null, null, null],
+      [isi(info.filterTeks || 'Semua', { italic: true, color: W.abu }), null, null, null, null],
+      [null, null, null, null, null],
+      H.map((k) => isi(k, { ...dasar, bold: true, color: W.putih, fill: W.hijau, align: 'center', wrap: true })),
+      ...ringkas.desa.map((d) => [isi(d.desa, dasar), isi(d.total, { ...dasar, align: 'center' }), isi(d.sudah, { ...dasar, align: 'center', color: W.hijauTua, bold: true }),
+        isi(d.belum, { ...dasar, align: 'center', color: d.belum ? W.merah : W.abu, bold: !!d.belum }), isi(d.total ? d.sudah / d.total : 0, { ...dasar, fmt: '0%', align: 'center' })]),
+      [isi('JUMLAH', { ...dasar, bold: true, fill: W.hijauMuda }), isi(t.total, { ...dasar, bold: true, fill: W.hijauMuda, align: 'center' }),
+        isi(t.sudah, { ...dasar, bold: true, fill: W.hijauMuda, align: 'center' }), isi(t.belum, { ...dasar, bold: true, fill: W.hijauMuda, align: 'center' }),
+        isi(t.total ? t.sudah / t.total : 0, { ...dasar, bold: true, fill: W.hijauMuda, fmt: '0%', align: 'center' })],
+    ];
+    return [s1, { nama: 'Ringkasan per Desa', kolom: [22, 12, 12, 12, 10], baris: rr, tinggi: { 0: 22, 3: 30 } }];
+  }
+
+  const api = { susun, susunRekap, susunCekMt, susunUpload, waktu };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkLaporan = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

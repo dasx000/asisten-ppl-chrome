@@ -127,6 +127,17 @@ dikelompokkan per kampung dan kelompok tani, dengan filter desa, poktan, komodit
   Setiap baris dicek ulang ke data terbaru (masih ada, status sesuai, isi belum diperbaiki) sebelum diproses.
 - **Unduh Excel** berisi daftar pengajuan yang MT-nya salah.
 
+### Status Upload per kelompok tani
+
+Tab **Status Upload** membandingkan daftar kelompok tani di **Master Data → Kelompok Tani** (`/api/poktan`) dengan
+data pengajuan: kelompok yang punya **minimal 1 pengajuan aktif** (bukan ditolak/batal/Not Valid) = **sudah upload**.
+
+- Filter **desa**, **sudah/belum upload**, **jenis** (Poktan tanpa KWT / KWT saja / keduanya), dan cari nama poktan.
+- Kelompok yang sudah upload diberi keterangan **komoditas & jumlah petani**, mis. *JAGUNG 23 petani · PADI 13 petani*.
+- Ringkasan sudah/belum per desa; **Unduh Excel** (lembar Status Upload + Ringkasan per Desa).
+- ID poktan di master berbeda dengan di pengajuan, jadi dicocokkan lewat **nama desa + nama poktan**. Nama yang
+  tercatat dobel di master atau pengajuan yang nama poktannya tidak ada di master diberi tanda.
+
 ### Rekap Luas
 
 Tab **Rekap Luas** di panel yang sama menampilkan luas lahan yang diajukan **per kampung → kelompok tani → komoditas**,
@@ -176,6 +187,7 @@ modules/
     core/api.js          GET /api/pengajuan (semua status) per 500 baris; POST delete-pengajuan / batal-pengajuan
     core/duplikasi.js    sidik baris (semua kolom kecuali id/status/cap waktu) → kelompok identik lintas status
     core/cekmt.js        padi/jagung yang jumlah MT-nya bukan 2, aturan Batal (status 2) / Hapus (status 1)
+    core/upload.js       status upload per poktan (master /api/poktan vs pengajuan aktif)
     core/rekap.js        rekap luas lahan & pupuk per desa → poktan → komoditas, filter desa/poktan/status
     core/laporan.js      tata letak Excel duplikasi & rekap luas
     content/panel.js     panel Cek Duplikasi (Shadow DOM), data tidak disimpan

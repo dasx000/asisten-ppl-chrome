@@ -14,7 +14,7 @@
   // Hanya setelah login (menu samping e-RDKK punya tautan Pengajuan)
   if (!document.querySelector('a[href$="/pengajuan"]')) return;
 
-  const API = window.ErdkkApi, D = window.ErdkkDuplikasi, L = window.ErdkkLaporan, R = window.ErdkkRekap, M = window.ErdkkCekMt;
+  const API = window.ErdkkApi, D = window.ErdkkDuplikasi, L = window.ErdkkLaporan, R = window.ErdkkRekap, M = window.ErdkkCekMt, U = window.ErdkkUpload;
 
   const st = {
     buka: false,
@@ -34,6 +34,8 @@
     fr: { desa: '', poktan: '', status: '', komoditas: '' }, // filter rekap ('' status = aktif)
     fm: { desa: '', poktan: '', status: '', komoditas: '' }, // filter Cek MT
     terbukaMt: null, // poktan yang rinciannya dibuka di Cek MT
+    poktanMaster: [], // master Kelompok Tani (/api/poktan)
+    fu: { desa: '', upload: '', jenis: 'poktan', cari: '' }, // filter Status Upload
   };
   const sibuk = () => st.tahap === 'memuat' || !!st.menghapus;
 
@@ -92,6 +94,7 @@
       const mentah = await API.semuaPengajuan({ onProgres: (n, total) => { st.progres = { n, total }; render(); } });
       st.baris = mentah.map(D.normalisasi);
       st.waktu = new Date().toISOString();
+      try { st.poktanMaster = await API.semuaPoktan(); } catch (e) { if (e instanceof API.SesiHabis) throw e; st.poktanMaster = []; }
       const desaBelum = [...new Set(st.baris.map((b) => b.desa))].filter((k) => k && !st.namaDesa.has(k));
       if (desaBelum.length) {
         const kec = [...new Set(st.baris.filter((b) => desaBelum.includes(b.desa)).map((b) => b.kecamatan))];
@@ -103,7 +106,7 @@
       st.galat = e instanceof API.SesiHabis || e instanceof API.ServerSibuk
         ? e.message : `Terjadi kesalahan: ${e.message}. Coba muat ulang halaman lalu ulangi.`;
     }
-    st.tahap = st.baris.length ? 'siap' : 'awal';
+    st.tahap = st.baris.length || st.poktanMaster.length ? 'siap' : 'awal';
     st.progres = null;
     render();
   }
@@ -126,6 +129,7 @@
           h('div', { class: 'sub' }, ({
             rekap: 'Rekap luas lahan per kampung, poktan, komoditas',
             mt: 'Cek MT: padi & jagung 2 MT, kopi maks 1 PT',
+            up: 'Status upload RDKK per kelompok tani',
             dup: 'Cek duplikasi: baris identik di semua status',
           })[st.tab] + (tahun ? ` · Tahun ${tahun}` : ''))),
         h('div', { class: 'tombol-kepala' },
@@ -134,7 +138,7 @@
           st.penuh ? '⤡' : '⛶'),
           h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕'))),
       h('nav', { class: 'tab-utama', role: 'tablist' },
-        [['dup', '⧉ Cek Duplikasi'], ['mt', '⚠ Cek MT'], ['rekap', '▦ Rekap Luas']].map(([k, l]) => h('button', {
+        [['dup', '⧉ Cek Duplikasi'], ['mt', '⚠ Cek MT'], ['rekap', '▦ Rekap Luas'], ['up', '☑ Status Upload']].map(([k, l]) => h('button', {
           type: 'button', role: 'tab', 'aria-selected': String(st.tab === k), class: st.tab === k ? 'aktif' : '',
           disabled: !!st.menghapus, onclick: () => { st.tab = k; render(); },
         }, l))),
@@ -144,7 +148,7 @@
         st.menghapus && h('div', { class: 'progres' }, h('div', { class: 'progres-judul' }, st.menghapus.teks),
           st.menghapus.n > 1 && h('div', { class: 'bar' }, h('div', { class: 'bar-isi', style: `width:${Math.round((st.menghapus.i / st.menghapus.n) * 100)}%` }))),
         sibuk() && viewProgres(),
-        st.baris.length && (st.tab === 'rekap' ? viewRekap() : st.tab === 'mt' ? viewMt() : viewHasil())),
+        (st.baris.length || st.poktanMaster.length) && ({ rekap: viewRekap, mt: viewMt, up: viewUpload }[st.tab] || viewHasil)()),
       viewAksi());
     if (fokus) {
       const el = akar.querySelector(`[name="${fokus}"]`);
@@ -242,6 +246,12 @@
 
   function viewAksi() {
     if (st.tab === 'mt') return viewAksiMt();
+    if (st.tab === 'up') {
+      return h('footer', { class: 'aksi' },
+        h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : '↻ Baca ulang data'),
+        st.poktanMaster.length ? h('button', { class: 'kedua', type: 'button', onclick: unduhUpload }, 'Unduh Excel') : null,
+        h('p', { class: 'aksi-ket' }, 'Hanya membaca data e-RDKK dengan akun Anda. Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
+    }
     if (st.tab === 'rekap') {
       return h('footer', { class: 'aksi' },
         h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : '↻ Baca ulang data'),
@@ -566,6 +576,76 @@
     const grup = M.kelompokkan(itemMt(), st.namaDesa);
     const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterMt() };
     unduhFile(window.AsistenExcel.buat(L.susunCekMt(info, grup, M.teksMasalah)), 'Cek MT e-RDKK');
+  }
+
+  // ─── Status upload per poktan ──────────────────────────────────────────────
+  const daftarUpload = () => U.statusUpload(st.poktanMaster, st.baris, st.namaDesa);
+
+  function viewUpload() {
+    if (!st.poktanMaster.length) return h('div', { class: 'galat' }, 'Daftar kelompok tani (Master Data → Kelompok Tani) tidak terbaca. Klik "Baca ulang data".');
+    const semua = daftarUpload();
+    const jenisSaja = U.saring(semua, { jenis: st.fu.jenis });
+    const desaOpsi = [...new Set(jenisSaja.map((p) => p.desa))].sort();
+    if (st.fu.desa && !desaOpsi.includes(st.fu.desa)) st.fu.desa = '';
+    const list = U.saring(semua, st.fu);
+    const ringkas = U.perDesa(U.saring(semua, { ...st.fu, upload: '' })); // ringkasan desa tidak terpengaruh filter sudah/belum
+    const t = ringkas.total;
+    const ubah = (k, v) => { st.fu[k] = v; render(); };
+    const sel = (name, nilai, opsi, label) => h('label', { class: 'pilih' }, h('span', {}, label),
+      h('select', { name: 'up-' + name, onchange: (e) => ubah(name, e.target.value) },
+        opsi.map(([v, l]) => h('option', { value: v, selected: nilai === v }, l))));
+    const nKwt = semua.filter((p) => p.kwt).length;
+    const body = [];
+    let desa = null;
+    for (const p of list) {
+      if (p.desa !== desa) {
+        desa = p.desa;
+        const d = ringkas.desa.find((x) => x.desa === desa) || { sudah: 0, total: 0 };
+        body.push(h('tr', { class: 'desa' }, h('td', { colspan: 3 }, desa), h('td', { class: 'n' }, `${d.sudah}/${d.total} sudah`)));
+      }
+      body.push(h('tr', {},
+        h('td', { class: 'poktan' }, p.nama, p.kwt && h('span', { class: 'chip abu kecil' }, 'KWT'),
+          p.dobelMaster && h('span', { class: 'chip kuning kecil', title: 'Nama poktan ini tercatat lebih dari sekali di master' }, 'dobel di master'),
+          p.diluarMaster && h('span', { class: 'chip kuning kecil', title: 'Ada pengajuan, tapi nama poktan tidak ditemukan di master' }, 'tidak ada di master')),
+        h('td', {}, p.sudah ? h('span', { class: 'chip hijau' }, '✓ Sudah') : h('span', { class: 'chip merah' }, 'Belum')),
+        h('td', { class: 'komoditas-up' }, p.sudah ? U.teksKomoditas(p) : '—'),
+        h('td', { class: 'n' }, p.pengajuan ? `${p.pengajuan} pengajuan` : '')));
+    }
+    const persen = t.total ? Math.round((t.sudah / t.total) * 100) : 0;
+    return [
+      h('section', { class: 'filter-rekap' },
+        sel('desa', st.fu.desa, [['', 'Semua desa'], ...desaOpsi.map((d) => [d, d])], 'Kelurahan/Desa'),
+        sel('upload', st.fu.upload, [['', 'Sudah & belum'], ['sudah', 'Sudah upload'], ['belum', 'Belum upload']], 'Status Upload'),
+        sel('jenis', st.fu.jenis, [['poktan', 'Poktan (tanpa KWT)'], ['kwt', `KWT saja (${nKwt})`], ['semua', 'Poktan + KWT']], 'Jenis'),
+        h('label', { class: 'pilih' }, h('span', {}, 'Cari poktan'),
+          h('input', { type: 'search', name: 'up-cari', value: st.fu.cari, placeholder: 'Nama poktan…', oninput: (e) => ubah('cari', e.target.value) }))),
+      h('section', { class: 'ringkas-atas' },
+        h('div', { class: 'angka-besar hijau' }, h('b', {}, `${t.sudah} / ${t.total}`), h('span', {}, `sudah upload (${persen}%)`)),
+        h('div', { class: 'angka-besar ' + (t.belum ? 'merah' : 'hijau') }, h('b', {}, t.belum), h('span', {}, 'belum upload')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, ringkas.desa.filter((d) => d.belum === 0).length + ' / ' + ringkas.desa.length), h('span', {}, 'desa sudah lengkap'))),
+      h('div', { class: 'bar' }, h('div', { class: 'bar-isi', style: `width:${persen}%` })),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Sudah upload = punya minimal 1 pengajuan aktif '),
+        '(status apa pun kecuali ditolak/batal/Not Valid). Daftar kelompok dari menu Master Data → Kelompok Tani, dicocokkan lewat nama desa + nama poktan.'),
+      !list.length ? h('p', { class: 'kosong' }, 'Tidak ada kelompok yang cocok dengan filter.')
+        : h('div', { class: 'tabel-rekap' }, h('table', {},
+          h('thead', {}, h('tr', {}, ['Desa / Kelompok Tani', 'Status', 'Komoditas yang diupload', ''].map((x, i) => h('th', { class: i === 3 ? 'n' : '' }, x)))),
+          h('tbody', {}, body))),
+    ];
+  }
+
+  function teksFilterUpload() {
+    return [st.fu.desa ? `Desa ${st.fu.desa}` : 'Semua desa',
+      { '': 'sudah & belum upload', sudah: 'sudah upload', belum: 'belum upload' }[st.fu.upload],
+      { poktan: 'poktan (tanpa KWT)', kwt: 'KWT saja', semua: 'poktan + KWT' }[st.fu.jenis],
+      st.fu.cari && `cari "${st.fu.cari}"`].filter(Boolean).join(' · ');
+  }
+
+  function unduhUpload() {
+    const semua = daftarUpload();
+    const list = U.saring(semua, st.fu);
+    const ringkas = U.perDesa(U.saring(semua, { ...st.fu, upload: '' }));
+    const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterUpload() };
+    unduhFile(window.AsistenExcel.buat(L.susunUpload(info, list, ringkas, U.teksKomoditas)), 'Status Upload RDKK');
   }
 
   function unduhRekap() {
