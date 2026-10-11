@@ -91,9 +91,11 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
 
 ### Aman dipakai
 
-- **Tidak ada yang dihapus tanpa Anda klik Hapus dan menyetujui konfirmasi.** Selain itu modul hanya membaca data.
+- **Tidak ada yang dihapus atau dibatalkan tanpa Anda klik dan menyetujui konfirmasi.** Selain itu modul hanya membaca data.
 - Tombol Hapus hanya ada di baris **Belum dikirim ke Korluh**, dan **minimal satu baris per kelompok selalu disisakan**
   (kalau ada salinan yang sudah dikirim, itulah yang disisakan).
+- Tombol **Batal** (tarik kembali dari Korluh) hanya ada di baris **Menunggu persetujuan Korluh**, dan hanya bila semua
+  salinannya sudah dikirim. Setelah dibatalkan, salinan itu kembali "Belum dikirim" dan bisa dihapus.
 - Sesaat sebelum menghapus, data dibaca ulang: baris harus masih ada, masih berstatus belum dikirim, dan masih identik
   dengan salinannya. Kalau tidak, penghapusan dibatalkan.
 - Menghapus memakai cara yang sama dengan tombol Hapus di menu Pengajuan (akun & token Anda sendiri).
@@ -107,8 +109,8 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
    adalah yang luput dari Monitoring Duplikasi bawaan.
 3. Saring per kelompok tani, cari nama/NIK, atau pilih tab **Tidak terdeteksi e-RDKK** / **Lintas status**.
 4. Klik kartu untuk melihat baris-barisnya. Hapus salinan dengan tombol **Hapus** per baris atau
-   **Hapus N salinan, sisakan 1** per kelompok. Kalau semuanya sudah dikirim, tidak ada tombol hapus:
-   koordinasikan dengan Korluh.
+   **Hapus N salinan, sisakan 1** per kelompok. Kalau semua salinan sudah di Korluh, klik **Batal** di salah satunya
+   dulu, lalu hapus. Kalau sudah diproses di atas Korluh (Kasie/Kabid/Kadis), koordinasikan dengan yang bersangkutan.
 5. Klik **Unduh Excel** untuk laporan (lembar Duplikasi + Ringkasan per kelompok tani).
 
 ---
@@ -141,7 +143,7 @@ modules/
     content/panel.css
     test/                test Node (tidak ikut ZIP)
   erdkk/
-    core/api.js          GET /api/pengajuan (semua status) per 500 baris; POST /api/delete-pengajuan untuk hapus salinan
+    core/api.js          GET /api/pengajuan (semua status) per 500 baris; POST delete-pengajuan / batal-pengajuan
     core/duplikasi.js    sidik baris (semua kolom kecuali id/status/cap waktu) → kelompok identik lintas status
     core/laporan.js      tata letak Excel duplikasi + ringkasan per kelompok tani
     content/panel.js     panel Cek Duplikasi (Shadow DOM), data tidak disimpan

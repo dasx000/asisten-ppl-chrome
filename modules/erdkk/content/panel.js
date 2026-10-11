@@ -1,8 +1,9 @@
 // ================= PANEL "CEK DUPLIKASI" DI e-RDKK ================= \\
 // Aturan sama dengan Monitoring Duplikasi bawaan (baris identik semua kolom = ter-upload 2x), tapi memeriksa
 // SEMUA status pengajuan, bukan hanya "Belum dikirim ke Korluh".
-// Aksi: hapus salinan berstatus "Belum dikirim ke Korluh" (endpoint sama dengan tombol Hapus bawaan), selalu dengan
-// konfirmasi, cek ulang data terbaru, dan minimal satu baris per kelompok disisakan.
+// Aksi (endpoint sama dengan tombol bawaan menu Pengajuan), selalu dengan konfirmasi & cek ulang data terbaru:
+// - Hapus salinan berstatus "Belum dikirim ke Korluh", minimal satu baris per kelompok disisakan
+// - Batal pengiriman salinan berstatus "Menunggu persetujuan Korluh" (ditarik kembali, lalu bisa dihapus)
 // Data berisi NIK, jadi TIDAK disimpan di browser: selalu diambil ulang saat panel dibuka.
 
 (function () {
@@ -195,7 +196,10 @@
             h('td', { class: 'id' }, String(b.id)),
             h('td', {}, D.bolehHapus(k, b)
               ? h('button', { type: 'button', class: 'hapus', disabled: sibuk(), onclick: () => hapusBaris(k, [b]) }, 'Hapus')
-              : h('span', { class: 'tetap', title: b.statusId === D.STATUS_DRAF ? 'Disisakan satu' : 'Sudah dikirim, tidak bisa dihapus penyuluh' }, '—')))))),
+              : D.bolehBatal(k, b)
+                ? h('button', { type: 'button', class: 'batal', disabled: sibuk(), onclick: () => batalBaris(k, b),
+                  title: 'Tarik kembali dari Korluh (sama dengan tombol Batal di menu Pengajuan)' }, 'Batal')
+                : h('span', { class: 'tetap', title: b.statusId === D.STATUS_DRAF ? 'Disisakan satu' : 'Sudah diproses di atas Korluh, tidak bisa dibatalkan penyuluh' }, '—')))))),
         D.salinanHapus(k).length > 0 && h('div', { class: 'aksi-kartu' },
           h('button', { type: 'button', class: 'hapus besar', disabled: sibuk(), onclick: () => hapusBaris(k, D.salinanHapus(k)) },
             `🗑 Hapus ${D.salinanHapus(k).length} salinan, sisakan 1`)),
@@ -203,7 +207,9 @@
           ? (k.bisaDihapus === k.baris.length
             ? 'Semua baris masih "Belum dikirim ke Korluh". Tombol di atas menghapus salinannya dan menyisakan yang paling awal dibuat.'
             : `${k.bisaDihapus} baris biru ("Belum dikirim ke Korluh") adalah salinan data yang sudah dikirim, aman dihapus.`)
-          : 'Semua baris sudah dikirim/diproses. Koordinasikan dengan Korluh agar salinannya ditolak/dikembalikan.')));
+          : k.bisaDibatal
+            ? 'Belum ada salinan yang bisa dihapus. Klik Batal di salah satu baris "Menunggu persetujuan Korluh" untuk menariknya kembali, lalu hapus.'
+            : 'Semua baris sudah diproses di atas Korluh. Koordinasikan dengan Korluh/Kasie agar salinannya ditolak/dikembalikan.')));
   }
 
   function viewAksi() {
@@ -211,7 +217,7 @@
     return h('footer', { class: 'aksi' },
       h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memeriksa…' : st.baris.length ? '↻ Periksa ulang' : 'Periksa duplikasi'),
       ada ? h('button', { class: 'kedua', type: 'button', onclick: unduh }, 'Unduh Excel') : null,
-      h('p', { class: 'aksi-ket' }, 'Data dibaca dengan akun Anda. Penghapusan hanya terjadi saat Anda klik Hapus dan menyetujui konfirmasi. ' +
+      h('p', { class: 'aksi-ket' }, 'Data dibaca dengan akun Anda. Hapus/Batal hanya terjadi saat Anda mengklik dan menyetujui konfirmasi. ' +
         'Data tidak disimpan di browser. ' +
         'Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
   }
@@ -254,6 +260,35 @@
       ? { jenis: 'galat', teks: `${ok.length ? `${ok.length} salinan ${k.nama} terhapus. ` : ''}Tidak dihapus: ${gagal.join('; ')}` }
       : { jenis: 'ok', teks: `✅ ${ok.length} salinan ${k.nama} berhasil dihapus. Data sudah diperiksa ulang.` };
     await muat(true); // baca ulang supaya daftar sesuai kondisi terbaru
+  }
+
+  async function batalBaris(k, b) {
+    if (sibuk()) return;
+    const tanya = `Batalkan pengiriman pengajuan ini ke Korluh?\n\n${k.nama} — NIK ${k.nik}\n` +
+      `• ID ${b.id} — ${b.status}, dibuat ${L.waktu(b.dibuat)}\n\n` +
+      'Sama dengan tombol Batal di menu Pengajuan. Baris ditarik kembali dari Korluh; setelah itu salinannya bisa dihapus.';
+    if (!window.confirm(tanya)) return;
+    st.menghapus = { teks: 'Memeriksa data terbaru sebelum membatalkan…' };
+    st.info = null;
+    render();
+    try {
+      const terbaru = (await API.semuaPengajuan()).map(D.normalisasi);
+      const alasan = D.cekSebelumBatal(terbaru, b);
+      if (alasan) throw new Error(`ID ${b.id} tidak dibatalkan: ${alasan}`);
+      st.menghapus = { teks: `Membatalkan ID ${b.id}…` };
+      render();
+      await API.batal(b.id);
+      const sesudah = (await API.semuaPengajuan()).map(D.normalisasi).find((x) => x.id === b.id);
+      st.info = { jenis: 'ok', teks: sesudah
+        ? `✅ Pengiriman ID ${b.id} (${k.nama}) dibatalkan. Status sekarang: "${sesudah.status}".` +
+          (sesudah.statusId === D.STATUS_DRAF ? ' Salinan ini sekarang bisa dihapus.' : '')
+        : `✅ Pengiriman ID ${b.id} (${k.nama}) dibatalkan. Baris tidak lagi muncul di daftar pengajuan.` };
+    } catch (e) {
+      console.error('[Asisten e-RDKK]', e);
+      st.info = { jenis: 'galat', teks: e.message };
+    }
+    st.menghapus = null;
+    await muat(true);
   }
 
   function unduh() {

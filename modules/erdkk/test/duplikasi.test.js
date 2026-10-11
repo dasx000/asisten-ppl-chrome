@@ -140,3 +140,24 @@ test('api.hapus: POST delete-pengajuan dengan token & id, galat server diteruska
   await assert.rejects(A.hapus(1, { fetch: async () => ({ status: 419, text: async () => '' }), token: 'T' }), A.SesiHabis);
   await assert.rejects(A.hapus(1, { fetch: ok, token: '' }), /Token keamanan/);
 });
+
+test('aturan batal: hanya status Menunggu Korluh dalam kelompok dobel', () => {
+  const { kelompok } = D.cari(DATA);
+  const k = Object.fromEntries(kelompok.map((x) => [x.nama, x]));
+  assert.deepEqual(k.ISMAIL.baris.map((b) => D.bolehBatal(k.ISMAIL, b)), [true, true]);
+  assert.deepEqual(k.SALAM.baris.map((b) => D.bolehBatal(k.SALAM, b)), [false, false, false]); // ada salinan draf → cukup hapus
+  assert.equal(k.ISMAIL.bisaDibatal, 2);
+  const b = k.ISMAIL.baris[0];
+  assert.equal(D.cekSebelumBatal(DATA, b), '');
+  assert.match(D.cekSebelumBatal(DATA.map((x) => (x.id === b.id ? { ...x, statusId: 1, status: 'Belum' } : x)), b), /status sudah berubah/);
+  assert.match(D.cekSebelumHapus(DATA, b), /status sudah berubah/); // baris status 2 tidak boleh dihapus
+});
+
+test('api.batal: POST batal-pengajuan dengan id & token', async () => {
+  let req;
+  await A.batal(77, { fetch: async (url, o) => { req = { url, o }; return { status: 200, text: async () => '{}' }; }, token: 'TK' });
+  assert.equal(req.url, '/api/batal-pengajuan');
+  assert.equal(req.o.headers['X-CSRF-TOKEN'], 'TK');
+  assert.equal(new URLSearchParams(req.o.body).get('id'), '77');
+  assert.equal(new URLSearchParams(req.o.body).has('statusPengajuan'), false);
+});

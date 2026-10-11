@@ -143,6 +143,11 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   font-size: 12px; font-weight: 600;
 }
 .rinci button.hapus:hover:not(:disabled) { background: var(--merah-muda); }
+.rinci button.batal {
+  padding: 3px 10px; border: 1.5px solid #f1d48a; border-radius: 7px; background: #fff; color: var(--kuning);
+  font-size: 12px; font-weight: 600;
+}
+.rinci button.batal:hover:not(:disabled) { background: var(--kuning-muda); }
 .rinci .tetap { color: var(--teks-lemah); }
 .aksi-kartu { margin-top: 10px; }
 .rinci button.hapus.besar { padding: 8px 14px; font-size: 13px; background: var(--merah); border-color: var(--merah); color: #fff; }

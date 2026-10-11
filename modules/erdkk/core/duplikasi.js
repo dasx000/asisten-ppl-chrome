@@ -7,6 +7,7 @@
   'use strict';
 
   const STATUS_DRAF = 1; // "Belum dikirim ke Korluh" — satu-satunya yang diperiksa fitur bawaan
+  const STATUS_KORLUH = 2; // "Menunggu persetujuan Korluh" — masih bisa dibatalkan (tombol Batal bawaan)
   const MT = [1, 2, 3];
   const PUPUK = [['urea', 'Urea'], ['npk', 'NPK'], ['npk_formula', 'NPK Formula'], ['organic', 'Organik'], ['za', 'ZA'], ['sp36', 'SP-36'], ['poc', 'POC']];
 
@@ -87,6 +88,7 @@
         lintasStatus: status.length > 1,
         terdeteksiBawaan: draf >= 2, // fitur bawaan hanya menangkap ≥2 baris "Belum dikirim ke Korluh"
         bisaDihapus: draf, // baris draf masih bisa dihapus sendiri oleh penyuluh
+        bisaDibatal: isi.filter((b) => b.statusId === STATUS_KORLUH).length,
       });
     }
     kelompok.sort((a, b) => a.terdeteksiBawaan - b.terdeteksiBawaan || b.lintasStatus - a.lintasStatus ||
@@ -147,25 +149,35 @@
   }
 
   /**
-   * Cek ulang sebelum menghapus, dengan data terbaru dari server: baris masih ada, masih draf, masih identik
-   * dengan kelompoknya, dan setelah dihapus masih tersisa minimal satu baris. Return '' bila aman, atau alasan.
+   * Boleh batalkan baris b (tarik kembali dari Korluh)? Hanya status 2, kelompoknya masih dobel, dan belum ada
+   * salinan "Belum dikirim" (kalau ada, cukup hapus salinan itu, tidak perlu membatalkan yang sudah dikirim).
    */
-  function cekSebelumHapus(barisTerbaru, b) {
+  function bolehBatal(k, b) {
+    return b.statusId === STATUS_KORLUH && k.baris.length > 1 && k.baris.some((x) => x.id === b.id) &&
+      !k.baris.some((x) => x.statusId === STATUS_DRAF);
+  }
+
+  /**
+   * Cek ulang sebelum aksi, dengan data terbaru dari server: baris masih ada, statusnya masih sesuai aksi
+   * (hapus → 1, batal → 2), masih identik, dan masih punya kembaran aktif. Return '' bila aman, atau alasan.
+   */
+  function cekSebelumHapus(barisTerbaru, b, statusWajib = STATUS_DRAF) {
     const sekarang = barisTerbaru.find((x) => x.id === b.id);
     if (!sekarang) return 'baris sudah tidak ada (mungkin sudah dihapus)';
-    if (sekarang.statusId !== STATUS_DRAF) return `status sudah berubah menjadi "${sekarang.status}"`;
+    if (sekarang.statusId !== statusWajib) return `status sudah berubah menjadi "${sekarang.status}"`;
     if (sekarang.sidik !== b.sidik) return 'isi baris sudah berubah, bukan salinan lagi';
     const kembar = barisTerbaru.filter((x) => !x.dikecualikan && x.sidik === b.sidik && x.id !== b.id);
-    if (!kembar.length) return 'tidak ada salinan lain yang tersisa, baris ini tidak dihapus';
+    if (!kembar.length) return 'tidak ada salinan lain yang tersisa, baris ini tidak diubah';
     return '';
   }
+  const cekSebelumBatal = (barisTerbaru, b) => cekSebelumHapus(barisTerbaru, b, STATUS_KORLUH);
 
   /** "MT1 JAGUNG 0,5 ha" ringkas */
   function ringkasMt(m) {
     return m.komoditas ? `${m.komoditas} ${String(m.luas).replace('.', ',')} ha` : '-';
   }
 
-  const api = { STATUS_DRAF, PUPUK, ABAIKAN, sidik, dikecualikan, normalisasi, cari, bolehHapus, salinanHapus, cekSebelumHapus, saring, hitung, daftarWilayah, ringkasMt };
+  const api = { STATUS_DRAF, STATUS_KORLUH, PUPUK, ABAIKAN, sidik, dikecualikan, normalisasi, cari, bolehHapus, salinanHapus, cekSebelumHapus, bolehBatal, cekSebelumBatal, saring, hitung, daftarWilayah, ringkasMt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkDuplikasi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
