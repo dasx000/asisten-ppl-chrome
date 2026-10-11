@@ -148,6 +148,11 @@
     return urut.slice(1);
   }
 
+  /** Semua salinan yang dihapus tombol "Hapus semua salinan" untuk daftar kelompok: [{ k, b }]. */
+  function semuaSalinanHapus(kelompok) {
+    return kelompok.flatMap((k) => salinanHapus(k).map((b) => ({ k, b })));
+  }
+
   /**
    * Boleh batalkan baris b (tarik kembali dari Korluh)? Hanya status 2, kelompoknya masih dobel, dan belum ada
    * salinan "Belum dikirim" (kalau ada, cukup hapus salinan itu, tidak perlu membatalkan yang sudah dikirim).
@@ -177,7 +182,7 @@
     return m.komoditas ? `${m.komoditas} ${String(m.luas).replace('.', ',')} ha` : '-';
   }
 
-  const api = { STATUS_DRAF, STATUS_KORLUH, PUPUK, ABAIKAN, sidik, dikecualikan, normalisasi, cari, bolehHapus, salinanHapus, cekSebelumHapus, bolehBatal, cekSebelumBatal, saring, hitung, daftarWilayah, ringkasMt };
+  const api = { STATUS_DRAF, STATUS_KORLUH, PUPUK, ABAIKAN, sidik, dikecualikan, normalisasi, cari, bolehHapus, salinanHapus, semuaSalinanHapus, cekSebelumHapus, bolehBatal, cekSebelumBatal, saring, hitung, daftarWilayah, ringkasMt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkDuplikasi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

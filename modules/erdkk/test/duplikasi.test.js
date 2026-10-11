@@ -161,3 +161,18 @@ test('api.batal: POST batal-pengajuan dengan id & token', async () => {
   assert.equal(new URLSearchParams(req.o.body).get('id'), '77');
   assert.equal(new URLSearchParams(req.o.body).has('statusPengajuan'), false);
 });
+
+test('semuaSalinanHapus: gabungan salinan draf semua kelompok, kelompok tanpa draf dilewati', () => {
+  const { kelompok } = D.cari(DATA);
+  const x = D.semuaSalinanHapus(kelompok);
+  assert.deepEqual(x.map(({ k }) => k.nama).sort(), ['SALAM', 'SALAM', 'SUHARSA']);
+  assert.ok(x.every(({ b }) => b.statusId === D.STATUS_DRAF));
+  // simulasi hapus berurutan dengan cek ulang: setiap kelompok tetap tersisa ≥1 baris
+  let data = [...DATA];
+  for (const { b } of x) {
+    assert.equal(D.cekSebelumHapus(data, b), '');
+    data = data.filter((r) => r.id !== b.id);
+  }
+  assert.deepEqual(D.cari(data).kelompok.map((k) => k.nama), ['ISMAIL']);
+  assert.ok(data.some((r) => r.nama === 'SALAM') && data.some((r) => r.nama === 'SUHARSA'));
+});

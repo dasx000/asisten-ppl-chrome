@@ -152,6 +152,12 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .aksi-kartu { margin-top: 10px; }
 .rinci button.hapus.besar { padding: 8px 14px; font-size: 13px; background: var(--merah); border-color: var(--merah); color: #fff; }
 .rinci button.hapus.besar:hover:not(:disabled) { background: #8f1c13; }
+.hapus-semua {
+  flex-basis: 100%; padding: 10px 14px; border: 0; border-radius: var(--radius);
+  background: var(--merah); color: #fff; font-weight: 600;
+}
+.hapus-semua:hover { background: #8f1c13; }
+.kedua.penuh { flex-basis: 100%; }
 .info { margin-bottom: 12px; padding: 11px 13px; border-radius: var(--radius); font-weight: 500; }
 .info.ok { background: var(--hijau-muda); color: var(--hijau-tua); border: 1px solid #bfe0cc; }
 .info.galat { background: var(--merah-muda); color: var(--merah); border: 1px solid #f5c2bd; }

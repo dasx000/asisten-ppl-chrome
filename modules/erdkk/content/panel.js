@@ -25,7 +25,8 @@
     galat: '',
     f: { cari: '', wilayah: '', jenis: 'semua' },
     terbuka: null, // kunci kelompok yang rinciannya dibuka (hanya satu)
-    menghapus: null, // { teks } saat proses hapus berjalan
+    menghapus: null, // { teks, i, n } saat proses hapus berjalan
+    henti: false, // diminta berhenti di tengah hapus massal
     info: null, // { jenis: 'ok'|'galat', teks } hasil aksi terakhir
   };
   const sibuk = () => st.tahap === 'memuat' || !!st.menghapus;
@@ -114,7 +115,8 @@
       h('div', { class: 'isi' },
         st.galat && h('div', { class: 'galat', role: 'alert' }, st.galat),
         st.info && h('div', { class: `info ${st.info.jenis}`, role: 'status' }, st.info.teks),
-        st.menghapus && h('div', { class: 'progres' }, h('div', { class: 'progres-judul' }, st.menghapus.teks)),
+        st.menghapus && h('div', { class: 'progres' }, h('div', { class: 'progres-judul' }, st.menghapus.teks),
+          st.menghapus.n > 1 && h('div', { class: 'bar' }, h('div', { class: 'bar-isi', style: `width:${Math.round((st.menghapus.i / st.menghapus.n) * 100)}%` }))),
         sibuk() && viewProgres(),
         st.baris.length && viewHasil()),
       viewAksi());
@@ -214,7 +216,13 @@
 
   function viewAksi() {
     const ada = st.baris.length && hasil().kelompok.length;
+    const semua = ada ? D.semuaSalinanHapus(D.saring(hasil().kelompok, st.f)) : [];
+    const nPetani = new Set(semua.map((x) => x.k)).size;
     return h('footer', { class: 'aksi' },
+      st.menghapus && st.menghapus.n > 1 && h('button', { class: 'kedua penuh', type: 'button', disabled: st.henti,
+        onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : '⏸ Hentikan penghapusan'),
+      !sibuk() && semua.length > 0 && h('button', { class: 'hapus-semua', type: 'button', onclick: () => hapusSemua(semua) },
+        `🗑 Hapus semua salinan (${semua.length} baris, ${nPetani} petani)`),
       h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memeriksa…' : st.baris.length ? '↻ Periksa ulang' : 'Periksa duplikasi'),
       ada ? h('button', { class: 'kedua', type: 'button', onclick: unduh }, 'Unduh Excel') : null,
       h('p', { class: 'aksi-ket' }, 'Data dibaca dengan akun Anda. Hapus/Batal hanya terjadi saat Anda mengklik dan menyetujui konfirmasi. ' +
@@ -223,6 +231,7 @@
   }
 
   // ─── Aksi hapus ────────────────────────────────────────────────────────────
+  /** Hapus salinan milik satu kelompok (tombol per baris & per kartu). */
   async function hapusBaris(k, daftar) {
     if (sibuk() || !daftar.length) return;
     const tersisa = k.baris.length - daftar.length;
@@ -230,25 +239,46 @@
     const tanya = `Hapus ${daftar.length} salinan pengajuan ini dari e-RDKK?\n\n${k.nama} — NIK ${k.nik}\n${rinci}\n\n` +
       `Tersisa ${tersisa} baris setelah dihapus. Penghapusan tidak bisa dibatalkan.`;
     if (!window.confirm(tanya)) return;
+    await jalankanHapus(daftar.map((b) => ({ k, b })), k.nama);
+  }
 
+  /** Hapus semua salinan dari kelompok yang sedang tampil (sesuai filter). */
+  async function hapusSemua(item) {
+    if (sibuk() || !item.length) return;
+    const petani = [...new Set(item.map((x) => x.k))];
+    const nama = petani.slice(0, 15).map((k) => `• ${k.nama} (${item.filter((x) => x.k === k).length} salinan)`).join('\n') +
+      (petani.length > 15 ? `\n… dan ${petani.length - 15} petani lain` : '');
+    const filter = st.f.wilayah || st.f.cari || st.f.jenis !== 'semua' ? '\n(Sesuai filter yang sedang aktif.)' : '';
+    const tanya = `Hapus ${item.length} salinan milik ${petani.length} petani dari e-RDKK?${filter}\n\n${nama}\n\n` +
+      'Hanya baris "Belum dikirim ke Korluh" yang dihapus, satu baris per petani selalu disisakan. ' +
+      'Penghapusan tidak bisa dibatalkan.';
+    if (!window.confirm(tanya)) return;
+    await jalankanHapus(item, `${petani.length} petani`);
+  }
+
+  /** Proses hapus berurutan dengan cek ulang data terbaru, bisa dihentikan, lalu laporan & baca ulang. */
+  async function jalankanHapus(item, label) {
     st.menghapus = { teks: 'Memeriksa data terbaru sebelum menghapus…' };
+    st.henti = false;
     st.info = null;
     render();
     const ok = [], gagal = [];
+    let dilewati = 0;
     try {
       let terbaru = (await API.semuaPengajuan()).map(D.normalisasi);
-      for (const [i, b] of daftar.entries()) {
-        st.menghapus = { teks: `Menghapus ${i + 1} dari ${daftar.length} (ID ${b.id})…` };
+      for (const [i, { k, b }] of item.entries()) {
+        if (st.henti) { dilewati = item.length - i; break; }
+        st.menghapus = { teks: `Menghapus ${i + 1} dari ${item.length}: ${k.nama} (ID ${b.id})…`, i, n: item.length };
         render();
         const alasan = D.cekSebelumHapus(terbaru, b);
-        if (alasan) { gagal.push(`ID ${b.id}: ${alasan}`); continue; }
+        if (alasan) { gagal.push(`${k.nama} ID ${b.id}: ${alasan}`); continue; }
         try {
           await API.hapus(b.id);
           ok.push(b.id);
           terbaru = terbaru.filter((x) => x.id !== b.id);
         } catch (e) {
           if (e instanceof API.SesiHabis) throw e;
-          gagal.push(`ID ${b.id}: ${e.message}`);
+          gagal.push(`${k.nama} ID ${b.id}: ${e.message}`);
         }
       }
     } catch (e) {
@@ -256,9 +286,11 @@
       gagal.push(e.message);
     }
     st.menghapus = null;
+    st.henti = false;
+    const henti = dilewati ? ` Dihentikan, ${dilewati} salinan belum diproses.` : '';
     st.info = gagal.length
-      ? { jenis: 'galat', teks: `${ok.length ? `${ok.length} salinan ${k.nama} terhapus. ` : ''}Tidak dihapus: ${gagal.join('; ')}` }
-      : { jenis: 'ok', teks: `✅ ${ok.length} salinan ${k.nama} berhasil dihapus. Data sudah diperiksa ulang.` };
+      ? { jenis: 'galat', teks: `${ok.length} salinan (${label}) terhapus.${henti} Tidak dihapus: ${gagal.join('; ')}` }
+      : { jenis: dilewati ? 'galat' : 'ok', teks: `${dilewati ? '⏸' : '✅'} ${ok.length} salinan (${label}) berhasil dihapus.${henti} Data sudah diperiksa ulang.` };
     await muat(true); // baca ulang supaya daftar sesuai kondisi terbaru
   }
 

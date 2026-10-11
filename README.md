@@ -109,7 +109,8 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
    adalah yang luput dari Monitoring Duplikasi bawaan.
 3. Saring per kelompok tani, cari nama/NIK, atau pilih tab **Tidak terdeteksi e-RDKK** / **Lintas status**.
 4. Klik kartu untuk melihat baris-barisnya. Hapus salinan dengan tombol **Hapus** per baris atau
-   **Hapus N salinan, sisakan 1** per kelompok. Kalau semua salinan sudah di Korluh, klik **Batal** di salah satunya
+   **Hapus N salinan, sisakan 1** per kelompok, atau **Hapus semua salinan** di bawah panel untuk semua petani
+   yang sedang tampil (mengikuti filter; ada konfirmasi berisi daftar nama dan tombol Hentikan selama proses). Kalau semua salinan sudah di Korluh, klik **Batal** di salah satunya
    dulu, lalu hapus. Kalau sudah diproses di atas Korluh (Kasie/Kabid/Kadis), koordinasikan dengan yang bersangkutan.
 5. Klik **Unduh Excel** untuk laporan (lembar Duplikasi + Ringkasan per kelompok tani).
 
