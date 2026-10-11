@@ -83,5 +83,5 @@ test('luas tanam = jumlah MT1+MT2+MT3, berdampingan dengan luas per tahun', () =
   assert.equal(r.total.luas, 4.5);
   assert.equal(r.total.luasTanam, 6.25); // jagung 1 + 1, padi 1,75, kopi 2 (1 MT), campuran 0,25 + 0,25
   const teks = new TextDecoder().decode(X.buat(L.susunRekap({ filterTeks: 'x' }, r)));
-  assert.match(teks, /Luas Tanam MT1\+MT2\+MT3/);
+  assert.match(teks, /Luas Total PT MT1\+MT2\+MT3/);
 });

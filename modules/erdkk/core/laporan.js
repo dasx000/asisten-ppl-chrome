@@ -115,7 +115,7 @@
 
   // ─── Rekap luas per kampung → poktan → komoditas ───────────────────────────
   const KOLOM_REKAP = [['No', 5], ['Kampung/Desa', 20], ['Kelompok Tani', 24], ['Komoditas', 14], ['Jumlah Petani', 10],
-    ['Luas Lahan per Tahun (ha)', 14], ['Luas Tanam MT1+MT2+MT3 (ha)', 15]];
+    ['Luas Lahan per Tahun (ha)', 14], ['Luas Total PT MT1+MT2+MT3 (ha)', 15]];
 
   /** info: { waktu, tahun, filterTeks } · r: hasil ErdkkRekap.rekap */
   function susunRekap(info, r) {
@@ -165,7 +165,7 @@
       ['Keterangan:', { bold: true, size: 10 }],
       ['• Luas Lahan per Tahun: dihitung sekali, bukan per periode tanam.', { size: 10, color: W.abu }],
       ['  Contoh: lahan 0,5 ha ditanam MT1 dan MT2 = 0,5 ha.', { size: 10, color: W.abu }],
-      ['• Luas Tanam = MT1 + MT2 + MT3 (contoh tadi = 1 ha).', { size: 10, color: W.abu }],
+      ['• Luas Total PT = MT1 + MT2 + MT3 (contoh tadi = 1 ha).', { size: 10, color: W.abu }],
       ['• Data dihitung apa adanya, termasuk salinan dobel bila ada.', { size: 10, color: W.abu }],
       ['• Alat bantu tidak resmi, bukan aplikasi Kementan.', { size: 10, color: W.abu }],
     ].forEach(([v, g]) => rows.push(judul(v, g)));
@@ -173,7 +173,7 @@
       lanskap: true, judulCetak: `${barisHeader}:${barisHeader}` };
 
     // Ringkasan per komoditas
-    const H = ['Komoditas', 'Jumlah Petani', 'Luas Lahan per Tahun (ha)', 'Luas Tanam MT1+MT2+MT3 (ha)'];
+    const H = ['Komoditas', 'Jumlah Petani', 'Luas Lahan per Tahun (ha)', 'Luas Total PT MT1+MT2+MT3 (ha)'];
     const rr = [
       [isi('RINGKASAN PER KOMODITAS', { bold: true, size: 13, color: W.hijauTua }), null, null, null],
       [isi(info.filterTeks || 'Semua data', { italic: true, color: W.abu }), null, null, null],
