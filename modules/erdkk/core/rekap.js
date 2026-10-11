@@ -1,7 +1,7 @@
 // ================= REKAP LUAS LAHAN e-RDKK PER KAMPUNG → POKTAN → KOMODITAS ================= \\
-// Luas per tahun = luas LAHAN, dihitung sekali per baris per komoditas (MT tidak dijumlah; bila luas antar MT
-// berbeda diambil yang terbesar). Luas tanam = jumlah luas MT1+MT2+MT3 (lahan × berapa kali ditanam).
-// Pupuk per tahun = jumlah MT1–MT3 untuk komoditas itu.
+// Luas per tahun = luas LAHAN, dihitung sekali per baris per komoditas (PT tidak dijumlah; bila luas antar PT
+// berbeda diambil yang terbesar). Luas tanam = jumlah luas PT1+PT2+PT3 (lahan × berapa kali ditanam).
+// Pupuk per tahun = jumlah PT1–PT3 untuk komoditas itu.
 // Data dihitung apa adanya (salinan dobel ikut terhitung). Tanpa DOM, bisa dites di Node.
 
 (function (root) {
@@ -27,7 +27,7 @@
 
   /**
    * Saring baris: { desa, poktan, status, komoditas } — status: '' (aktif: kecuali ditolak/batal/Not Valid), 'semua',
-   * atau id status. komoditas: baris yang menanam komoditas itu di salah satu MT (hitungannya disaring lagi di rekap()).
+   * atau id status. komoditas: baris yang menanam komoditas itu di salah satu PT (hitungannya disaring lagi di rekap()).
    */
   function saringBaris(baris, f = {}) {
     return baris.filter((b) => {

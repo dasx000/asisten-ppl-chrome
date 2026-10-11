@@ -21,13 +21,13 @@ const NAMA = new Map([['1808022008', 'TANJUNG BULAN'], ['1808022001', 'DATAR BAN
 const DATA = [
   b('1808022008', 1, 2, [['JAGUNG', 0.5, 125, 150], ['JAGUNG', 0.5, 125, 150]]), // jagung 0,5 ha (bukan 1,0), urea 250
   b('1808022008', 1, 1, [['JAGUNG', 0.5, 125, 150], ['JAGUNG', 0.5, 125, 150]]), // salinan dobel → tetap dihitung
-  b('1808022008', 1, 2, [['PADI', 1, 200, 200], ['PADI', 0.75, 150, 150]]), // luas beda antar MT → ambil terbesar 1,0
+  b('1808022008', 1, 2, [['PADI', 1, 200, 200], ['PADI', 0.75, 150, 150]]), // luas beda antar PT → ambil terbesar 1,0
   b('1808022008', 2, 2, [['KOPI', 2, 100, 100]]),
   b('1808022001', 3, 2, [['PADI', 0.25, 50, 50], ['JAGUNG', 0.25, 60, 60]]), // beda komoditas → masuk ke masing-masing
   b('1808022001', 3, 95, [['PADI', 9, 0, 0]]), // Not Valid → dikecualikan bawaan
 ].map(D.normalisasi);
 
-test('perKomoditas: luas sekali per komoditas (maks antar MT), pupuk dijumlah MT', () => {
+test('perKomoditas: luas sekali per komoditas (maks antar PT), pupuk dijumlah PT', () => {
   assert.deepEqual(R.perKomoditas(DATA[0]).map((x) => [x.komoditas, x.luas, x.pupuk.urea, x.pupuk.npk]), [['JAGUNG', 0.5, 250, 300]]);
   assert.deepEqual(R.perKomoditas(DATA[2]).map((x) => [x.komoditas, x.luas, x.pupuk.urea]), [['PADI', 1, 350]]);
   assert.deepEqual(R.perKomoditas(DATA[4]).map((x) => [x.komoditas, x.luas]), [['PADI', 0.25], ['JAGUNG', 0.25]]);
@@ -66,7 +66,7 @@ test('Excel rekap: subtotal, total, dan lembar per komoditas', () => {
   assert.match(teks, /<v>4\.5<\/v>/);
 });
 
-test('filter komoditas: baris campuran (padi MT1 + jagung MT2) hanya dihitung komoditas terpilih', () => {
+test('filter komoditas: baris campuran (padi PT1 + jagung PT2) hanya dihitung komoditas terpilih', () => {
   const luas = (kom) => R.rekap(R.saringBaris(DATA, { komoditas: kom }), NAMA, kom);
   const padi = luas('PADI');
   assert.equal(padi.total.luas, 1.25); // 1 (Tanjung Bulan) + 0,25 (Datar Bancong, baris campuran)
@@ -76,14 +76,14 @@ test('filter komoditas: baris campuran (padi MT1 + jagung MT2) hanya dihitung ko
   assert.deepEqual(R.pilihan(DATA, NAMA).komoditas.map((k) => k.id), ['JAGUNG', 'KOPI', 'PADI']);
 });
 
-test('luas tanam = jumlah MT1+MT2+MT3, berdampingan dengan luas per tahun', () => {
-  assert.equal(R.perKomoditas(DATA[0])[0].luasTanam, 1); // jagung 0,5 di MT1 & MT2
+test('luas tanam = jumlah PT1+PT2+PT3, berdampingan dengan luas per tahun', () => {
+  assert.equal(R.perKomoditas(DATA[0])[0].luasTanam, 1); // jagung 0,5 di PT1 & PT2
   assert.equal(R.perKomoditas(DATA[2])[0].luasTanam, 1.75); // padi 1 + 0,75
   const r = R.rekap(R.saringBaris(DATA, {}), NAMA);
   assert.equal(r.total.luas, 4.5);
-  assert.equal(r.total.luasTanam, 6.25); // jagung 1 + 1, padi 1,75, kopi 2 (1 MT), campuran 0,25 + 0,25
+  assert.equal(r.total.luasTanam, 6.25); // jagung 1 + 1, padi 1,75, kopi 2 (1 PT), campuran 0,25 + 0,25
   const teks = new TextDecoder().decode(X.buat(L.susunRekap({ filterTeks: 'x' }, r)));
-  assert.match(teks, /Luas Total PT MT1\+MT2\+MT3/);
+  assert.match(teks, /Luas Total PT \(PT1\+PT2\+PT3\)/);
 });
 
 test('namaDesa: utama /api/wilayah (semua desa), cadangan /api/areas-sub-district', async () => {

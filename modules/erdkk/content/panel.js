@@ -32,8 +32,8 @@
     penuh: false, // panel dibesarkan selebar layar
     namaDesa: new Map(), // kode desa → nama
     fr: { desa: '', poktan: '', status: '', komoditas: '' }, // filter rekap ('' status = aktif)
-    fm: { desa: '', poktan: '', status: '', komoditas: '' }, // filter Cek MT
-    terbukaMt: null, // poktan yang rinciannya dibuka di Cek MT
+    fm: { desa: '', poktan: '', status: '', komoditas: '' }, // filter Cek PT
+    terbukaMt: null, // poktan yang rinciannya dibuka di Cek PT
     poktanMaster: [], // master Kelompok Tani (/api/poktan)
     fu: { desa: '', upload: '', jenis: 'poktan', cari: '' }, // filter Status Upload
   };
@@ -128,7 +128,7 @@
           h('div', { class: 'judul' }, 'Asisten e-RDKK'),
           h('div', { class: 'sub' }, ({
             rekap: 'Rekap luas lahan per kampung, poktan, komoditas',
-            mt: 'Cek MT: padi & jagung 2 MT, kopi maks 1 PT',
+            mt: 'Cek PT: padi & jagung 2 PT, kopi maks 1 PT',
             up: 'Status upload RDKK per kelompok tani',
             dup: 'Cek duplikasi: baris identik di semua status',
           })[st.tab] + (tahun ? ` · Tahun ${tahun}` : ''))),
@@ -138,7 +138,7 @@
           st.penuh ? 'Perkecil' : 'Perbesar'),
           h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕'))),
       h('nav', { class: 'tab-utama', role: 'tablist' },
-        [['dup', 'Cek Duplikasi'], ['mt', 'Cek MT'], ['rekap', 'Rekap Luas'], ['up', 'Status Upload']].map(([k, l]) => h('button', {
+        [['dup', 'Cek Duplikasi'], ['mt', 'Cek PT'], ['rekap', 'Rekap Luas'], ['up', 'Status Upload']].map(([k, l]) => h('button', {
           type: 'button', role: 'tab', 'aria-selected': String(st.tab === k), class: st.tab === k ? 'aktif' : '',
           disabled: !!st.menghapus, onclick: () => { st.tab = k; render(); },
         }, l))),
@@ -220,7 +220,7 @@
       h('span', { class: 'panah' + (buka ? ' buka' : ''), 'aria-hidden': 'true' })),
       buka && h('div', { class: 'rinci' },
         h('table', {},
-          h('thead', {}, h('tr', {}, ['Status', 'Dibuat', 'MT1', 'MT2', 'MT3', 'ID', 'Aksi'].map((t) => h('th', {}, t)))),
+          h('thead', {}, h('tr', {}, ['Status', 'Dibuat', 'PT1', 'PT2', 'PT3', 'ID', 'Aksi'].map((t) => h('th', {}, t)))),
           h('tbody', {}, k.baris.map((b) => h('tr', { class: b.statusId === D.STATUS_DRAF ? 'draf' : '' },
             h('td', {}, b.status),
             h('td', {}, L.waktu(b.dibuat)),
@@ -412,13 +412,13 @@
       sel3,
       h('section', { class: 'ringkas-atas' },
         h('div', { class: 'angka-besar hijau' }, h('b', {}, fmtLuas(r.total.luas)), h('span', {}, 'ha luas lahan per tahun')),
-        h('div', { class: 'angka-besar abu' }, h('b', {}, fmtLuas(r.total.luasTanam)), h('span', {}, 'ha luas total PT (MT1+MT2+MT3)')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, fmtLuas(r.total.luasTanam)), h('span', {}, 'ha luas total PT (PT1+PT2+PT3)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, fmtKg(r.total.petani)), h('span', {}, 'petani (baris)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, r.perKomoditas.map((k) => k.komoditas).join(', ') || '-'), h('span', {}, 'komoditas'))),
       r.perKomoditas.length > 1 && h('p', { class: 'diperbarui' }, r.perKomoditas.map((k) => `${k.komoditas} ${fmtLuas(k.luas)} ha`).join(' · ')),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'Luas = luas lahan PER TAHUN, bukan per periode tanam (MT). '),
-        'Lahan jagung 0,5 ha yang ditanam di MT1 dan MT2 dihitung 0,5 ha, bukan 1 ha. ',
-        h('b', {}, 'Luas Total PT'), ' = jumlah luas semua periode tanam MT1+MT2+MT3 (contoh tadi = 1 ha), jadi Luas Total PT ÷ Luas/Tahun = berapa kali ditanam setahun. ',
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'Luas = luas lahan PER TAHUN, bukan per periode tanam (PT). '),
+        'Lahan jagung 0,5 ha yang ditanam di PT1 dan PT2 dihitung 0,5 ha, bukan 1 ha. ',
+        h('b', {}, 'Luas Total PT'), ' = jumlah luas semua periode tanam PT1+PT2+PT3 (contoh tadi = 1 ha), jadi Luas Total PT ÷ Luas/Tahun = berapa kali ditanam setahun. ',
         ''),
       !r.desa.length ? h('p', { class: 'kosong' }, 'Tidak ada data untuk filter ini.')
         : h('div', { class: 'tabel-rekap' }, h('table', {},
@@ -430,7 +430,7 @@
     ];
   }
 
-  // ─── Cek MT padi & jagung ──────────────────────────────────────────────────
+  // ─── Cek PT padi & jagung ──────────────────────────────────────────────────
   const itemMt = () => M.cari(st.baris, st.fm);
 
   function teksFilterMt() {
@@ -472,13 +472,13 @@
         sel('komoditas', st.fm.komoditas, [], 'Komoditas', [['', 'Padi, Jagung & Kopi'], ['PADI', 'PADI'], ['JAGUNG', 'JAGUNG'], ['KOPI', 'KOPI']]),
         sel('status', st.fm.status, p.status, 'Status', [['', 'Semua (kecuali ditolak/batal/Not Valid)'], ['semua', 'Semua status']])),
       h('section', { class: 'ringkas-atas' },
-        h('div', { class: 'angka-besar ' + (n.total ? 'merah' : 'hijau') }, h('b', {}, n.total), h('span', {}, 'pengajuan MT/PT salah')),
+        h('div', { class: 'angka-besar ' + (n.total ? 'merah' : 'hijau') }, h('b', {}, n.total), h('span', {}, 'pengajuan PT salah')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.padi} / ${n.jagung} / ${n.kopi}`), h('span', {}, 'padi / jagung / kopi')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.batal} / ${n.hapus}`), h('span', {}, 'bisa Batal / Hapus'))),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'Padi & jagung harus 2 MT setahun; kopi (tanaman tahunan) cukup 1 PT. '),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'Padi & jagung harus 2 PT setahun; kopi (tanaman tahunan) cukup 1 PT. '),
         'Yang tidak sesuai ditampilkan di sini. ', h('b', {}, 'Batal'), ' = tarik dari Korluh (status kembali "Belum dikirim") supaya bisa diperbaiki; ',
         h('b', {}, 'Hapus'), ' = hapus permanen pengajuan yang belum dikirim ke Korluh.'),
-      !item.length ? h('div', { class: 'aman' }, 'Semua pengajuan padi & jagung sudah 2 MT, dan kopi 1 PT.')
+      !item.length ? h('div', { class: 'aman' }, 'Semua pengajuan padi & jagung sudah 2 PT, dan kopi 1 PT.')
         : grup.map((d) => h('section', { class: 'grup-mt' },
           h('div', { class: 'grup-judul-mt' }, d.nama),
           h('ul', { class: 'daftar' }, d.poktan.map((pk) => {
@@ -575,7 +575,7 @@
   function unduhMt() {
     const grup = M.kelompokkan(itemMt(), st.namaDesa);
     const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterMt() };
-    unduhFile(window.AsistenExcel.buat(L.susunCekMt(info, grup, M.teksMasalah)), 'Cek MT e-RDKK');
+    unduhFile(window.AsistenExcel.buat(L.susunCekMt(info, grup, M.teksMasalah)), 'Cek PT e-RDKK');
   }
 
   // ─── Status upload per poktan ──────────────────────────────────────────────

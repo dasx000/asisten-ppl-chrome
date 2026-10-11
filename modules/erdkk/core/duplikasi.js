@@ -178,7 +178,7 @@
   }
   const cekSebelumBatal = (barisTerbaru, b) => cekSebelumHapus(barisTerbaru, b, STATUS_KORLUH);
 
-  /** "MT1 JAGUNG 0,5 ha" ringkas */
+  /** "PT1 JAGUNG 0,5 ha" ringkas */
   function ringkasMt(m) {
     return m.komoditas ? `${m.komoditas} ${String(m.luas).replace('.', ',')} ha` : '-';
   }

@@ -8,7 +8,7 @@
     oranye: 'B45309', kuningMuda: 'FFF6DB', abu: '5B6470', abuMuda: 'F1F3F5', putih: 'FFFFFF', biruMuda: 'E8F0FB', biru: '1D5FAE' };
   const KOLOM = [
     ['No', 5], ['Nama Petani', 22], ['NIK', 19], ['Subsektor', 17], ['Kelompok Tani', 20], ['Kode Desa', 12],
-    ['Status', 26], ['Dibuat', 16], ['Diperbarui', 16], ['MT1', 18], ['MT2', 18], ['MT3', 18],
+    ['Status', 26], ['Dibuat', 16], ['Diperbarui', 16], ['PT1', 18], ['PT2', 18], ['PT3', 18],
     ['Urea (kg)', 10], ['NPK (kg)', 10], ['Organik (kg)', 11], ['ID Pengajuan', 12],
   ];
   const N = KOLOM.length;
@@ -79,7 +79,7 @@
       ['Keterangan:', { bold: true, size: 10 }],
       ['• Kuning = TIDAK terdeteksi Monitoring Duplikasi bawaan e-RDKK (fitur bawaan hanya memeriksa data "Belum dikirim ke Korluh").', { size: 10, color: W.abu }],
       ['• Status biru = Belum dikirim ke Korluh (masih bisa dihapus penyuluh). Status hijau = sudah dikirim/diproses, koordinasikan dengan Korluh.', { size: 10, color: W.abu }],
-      ['• Pupuk = jumlah MT1–MT3. Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.', { size: 10, color: W.abu }],
+      ['• Pupuk = jumlah PT1–PT3. Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.', { size: 10, color: W.abu }],
     ].forEach(([v, s]) => rows.push(judul(v, s)));
 
     const sheet1 = {
@@ -115,7 +115,7 @@
 
   // ─── Rekap luas per kampung → poktan → komoditas ───────────────────────────
   const KOLOM_REKAP = [['No', 5], ['Kampung/Desa', 20], ['Kelompok Tani', 24], ['Komoditas', 14], ['Jumlah Petani', 10],
-    ['Luas Lahan per Tahun (ha)', 14], ['Luas Total PT MT1+MT2+MT3 (ha)', 15]];
+    ['Luas Lahan per Tahun (ha)', 14], ['Luas Total PT (PT1+PT2+PT3) (ha)', 15]];
 
   /** info: { waktu, tahun, filterTeks } · r: hasil ErdkkRekap.rekap */
   function susunRekap(info, r) {
@@ -129,7 +129,7 @@
     ];
     const rows = [
       judul('REKAP LUAS LAHAN e-RDKK', { bold: true, size: 15, color: W.hijauTua }),
-      judul(`Tahun ${info.tahun || ''} · Luas lahan PER TAHUN (bukan per MT)`, { bold: true }),
+      judul(`Tahun ${info.tahun || ''} · Luas lahan PER TAHUN (bukan per PT)`, { bold: true }),
       judul(info.filterTeks || 'Semua data', { italic: true, color: W.abu }),
       judul(`${r.jumlahBaris} pengajuan · diambil ${waktu(info.waktu)}`, { italic: true, color: W.abu }),
       kosong(),
@@ -164,8 +164,8 @@
     [
       ['Keterangan:', { bold: true, size: 10 }],
       ['• Luas Lahan per Tahun: dihitung sekali, bukan per periode tanam.', { size: 10, color: W.abu }],
-      ['  Contoh: lahan 0,5 ha ditanam MT1 dan MT2 = 0,5 ha.', { size: 10, color: W.abu }],
-      ['• Luas Total PT = MT1 + MT2 + MT3 (contoh tadi = 1 ha).', { size: 10, color: W.abu }],
+      ['  Contoh: lahan 0,5 ha ditanam PT1 dan PT2 = 0,5 ha.', { size: 10, color: W.abu }],
+      ['• Luas Total PT = PT1 + PT2 + PT3 (contoh tadi = 1 ha).', { size: 10, color: W.abu }],
       ['• Data dihitung apa adanya, termasuk salinan dobel bila ada.', { size: 10, color: W.abu }],
       ['• Alat bantu tidak resmi, bukan aplikasi Kementan.', { size: 10, color: W.abu }],
     ].forEach(([v, g]) => rows.push(judul(v, g)));
@@ -173,7 +173,7 @@
       lanskap: true, judulCetak: `${barisHeader}:${barisHeader}` };
 
     // Ringkasan per komoditas
-    const H = ['Komoditas', 'Jumlah Petani', 'Luas Lahan per Tahun (ha)', 'Luas Total PT MT1+MT2+MT3 (ha)'];
+    const H = ['Komoditas', 'Jumlah Petani', 'Luas Lahan per Tahun (ha)', 'Luas Total PT (PT1+PT2+PT3) (ha)'];
     const rr = [
       [isi('RINGKASAN PER KOMODITAS', { bold: true, size: 13, color: W.hijauTua }), null, null, null],
       [isi(info.filterTeks || 'Semua data', { italic: true, color: W.abu }), null, null, null],
@@ -186,18 +186,18 @@
     return [s1, s2];
   }
 
-  // ─── Cek MT padi/jagung ────────────────────────────────────────────────────
+  // ─── Cek PT padi/jagung ────────────────────────────────────────────────────
   /** info: { waktu, tahun, filterTeks } · grup: hasil ErdkkCekMt.kelompokkan · teksMasalah: fungsi */
   function susunCekMt(info, grup, teksMasalah) {
-    const K = [['No', 5], ['Desa', 14], ['Kelompok Tani', 20], ['Nama Petani', 24], ['NIK', 19], ['Masalah MT', 28],
+    const K = [['No', 5], ['Desa', 14], ['Kelompok Tani', 20], ['Nama Petani', 24], ['NIK', 19], ['Masalah PT', 28],
       ['Luas (ha)', 9], ['Status', 26], ['Aksi', 10], ['ID Pengajuan', 12]];
     const N = K.length;
     const kosong = () => Array.from({ length: N }, () => null);
     const judul = (v, s) => { const r = kosong(); r[0] = isi(v, s); return r; };
     const semua = grup.flatMap((d) => d.poktan.flatMap((p) => p.item));
     const rows = [
-      judul('CEK MT/PT e-RDKK', { bold: true, size: 15, color: W.hijauTua }),
-      judul(`Tahun ${info.tahun || ''} · padi & jagung harus 2 MT; kopi (tahunan) maks 1 PT`, { bold: true }),
+      judul('CEK PT e-RDKK', { bold: true, size: 15, color: W.hijauTua }),
+      judul(`Tahun ${info.tahun || ''} · padi & jagung harus 2 PT; kopi (tahunan) maks 1 PT`, { bold: true }),
       judul(info.filterTeks || 'Semua data', { italic: true, color: W.abu }),
       judul(`${semua.length} pengajuan · diambil ${waktu(info.waktu)}`, { italic: true, color: W.abu }),
       kosong(),
@@ -228,13 +228,13 @@
     const akhir = rows.length;
     rows.push(kosong());
     [['Keterangan:', { bold: true, size: 10 }],
-      ['• Padi dan jagung seharusnya diisi 2 MT dalam setahun.', { size: 10, color: W.abu }],
+      ['• Padi dan jagung seharusnya diisi 2 PT dalam setahun.', { size: 10, color: W.abu }],
       ['• Kopi tanaman tahunan, cukup diisi 1 PT.', { size: 10, color: W.abu }],
       ['• Aksi Batal: menarik pengajuan dari Korluh agar bisa diperbaiki.', { size: 10, color: W.abu }],
       ['• Aksi Hapus: menghapus pengajuan yang belum dikirim ke Korluh.', { size: 10, color: W.abu }],
       ['• Alat bantu tidak resmi, bukan aplikasi Kementan.', { size: 10, color: W.abu }],
     ].forEach(([v, g]) => rows.push(judul(v, g)));
-    return [{ nama: 'Cek MT', kolom: K.map(([, w]) => w), baris: rows, tinggi: { 0: 24, [barisHeader - 1]: 30 }, bekukan: barisHeader,
+    return [{ nama: 'Cek PT', kolom: K.map(([, w]) => w), baris: rows, tinggi: { 0: 24, [barisHeader - 1]: 30 }, bekukan: barisHeader,
       filter: semua.length ? `A${barisHeader}:J${akhir}` : null, lanskap: true, judulCetak: `${barisHeader}:${barisHeader}` }];
   }
 

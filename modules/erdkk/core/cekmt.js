@@ -1,5 +1,5 @@
-// ================= CEK JUMLAH MT/PT PER KOMODITAS ================= \\
-// Aturan: padi & jagung harus tepat 2 MT setahun; kopi (tanaman tahunan) paling banyak 1 PT.
+// ================= CEK JUMLAH PT PER KOMODITAS ================= \\
+// Aturan: padi & jagung harus tepat 2 PT setahun; kopi (tanaman tahunan) paling banyak 1 PT.
 // Pengajuan yang melanggar ditandai salah input,
 // lalu bisa ditarik (Batal, status Menunggu Korluh) atau dihapus (status Belum dikirim) untuk diperbaiki.
 // Tanpa DOM, bisa dites di Node.
@@ -7,16 +7,16 @@
 (function (root) {
   'use strict';
 
-  // komoditas → { boleh(n): jumlah MT yang benar?, aturan: teks }
+  // komoditas → { boleh(n): jumlah PT yang benar?, aturan: teks }
   const ATURAN = {
-    PADI: { boleh: (n) => n === 2, aturan: 'harus 2 MT' },
-    JAGUNG: { boleh: (n) => n === 2, aturan: 'harus 2 MT' },
+    PADI: { boleh: (n) => n === 2, aturan: 'harus 2 PT' },
+    JAGUNG: { boleh: (n) => n === 2, aturan: 'harus 2 PT' },
     KOPI: { boleh: (n) => n <= 1, aturan: 'tanaman tahunan, maks 1 PT' },
   };
   const KOMODITAS_DICEK = Object.keys(ATURAN);
   const STATUS_DRAF = 1, STATUS_KORLUH = 2;
 
-  /** Masalah MT di satu baris: [{ komoditas, mt: [1], jumlah: 1, luas }] — kosong bila semua benar. */
+  /** Masalah PT di satu baris: [{ komoditas, mt: [1], jumlah: 1, luas }] — kosong bila semua benar. */
   function masalahMt(b, komoditas = KOMODITAS_DICEK) {
     const hasil = [];
     for (const k of komoditas) {
@@ -28,10 +28,10 @@
     return hasil;
   }
 
-  /** Teks ringkas: "PADI hanya MT1", "JAGUNG 3 MT (MT1, MT2, MT3)", "KOPI 2 PT (MT1, MT2) — tahunan, maks 1 PT" */
+  /** Teks ringkas: "PADI hanya PT1", "JAGUNG 3 PT (PT1, PT2, PT3)", "KOPI 2 PT (PT1, PT2) — tahunan, maks 1 PT" */
   function teksMasalah(m) {
-    if (m.komoditas === 'KOPI') return `KOPI ${m.jumlah} PT (${m.mt.map((i) => 'MT' + i).join(', ')}), tahunan maks 1 PT`;
-    return m.jumlah === 1 ? `${m.komoditas} hanya MT${m.mt[0]}` : `${m.komoditas} ${m.jumlah} MT (${m.mt.map((i) => 'MT' + i).join(', ')})`;
+    if (m.komoditas === 'KOPI') return `KOPI ${m.jumlah} PT (${m.mt.map((i) => 'PT' + i).join(', ')}), tahunan maks 1 PT`;
+    return m.jumlah === 1 ? `${m.komoditas} hanya PT${m.mt[0]}` : `${m.komoditas} ${m.jumlah} PT (${m.mt.map((i) => 'PT' + i).join(', ')})`;
   }
 
   /** Aksi yang mungkin untuk baris: 'batal' (status 2), 'hapus' (status 1), atau '' */
@@ -81,7 +81,7 @@
 
   /**
    * Cek ulang ke data terbaru sebelum aksi: baris masih ada, statusnya masih sesuai aksi, dan isinya belum berubah
-   * (masih salah MT). Return '' bila aman, atau alasan.
+   * (masih salah PT). Return '' bila aman, atau alasan.
    */
   function cekSebelumAksi(barisTerbaru, b, aksi) {
     const s = barisTerbaru.find((x) => x.id === b.id);
@@ -89,7 +89,7 @@
     const wajib = aksi === 'batal' ? STATUS_KORLUH : STATUS_DRAF;
     if (s.statusId !== wajib) return `status sudah "${s.status}"`;
     if (s.sidik !== b.sidik) return 'isi baris sudah berubah (mungkin sudah diperbaiki)';
-    if (!masalahMt(s).length) return 'MT sudah benar';
+    if (!masalahMt(s).length) return 'PT sudah benar';
     return '';
   }
 

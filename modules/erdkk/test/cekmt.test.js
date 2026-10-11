@@ -13,10 +13,10 @@ const b = (st, mt, extra = {}) => {
   return x;
 };
 const DATA = [
-  b(2, ['PADI', '', '']), // padi 1 MT → batal
-  b(1, ['JAGUNG', '', '']), // jagung 1 MT → hapus
+  b(2, ['PADI', '', '']), // padi 1 PT → batal
+  b(1, ['JAGUNG', '', '']), // jagung 1 PT → hapus
   b(2, ['PADI', 'PADI', '']), // benar
-  b(2, ['JAGUNG', 'JAGUNG', 'JAGUNG']), // jagung 3 MT → batal
+  b(2, ['JAGUNG', 'JAGUNG', 'JAGUNG']), // jagung 3 PT → batal
   b(3, ['PADI', '', '']), // salah tapi di Kasie → tanpa aksi
   b(2, ['KOPI', '', '']), // kopi 1 PT → benar
   b(95, ['PADI', '', '']), // Not Valid → dikecualikan
@@ -24,20 +24,20 @@ const DATA = [
   b(1, ['KOPI', 'KOPI', ''], { poktan: 2 }), // kopi 2 PT → salah (tahunan), hapus
 ].map(D.normalisasi);
 
-test('masalahMt: padi/jagung bukan tepat 2 MT', () => {
-  assert.deepEqual(M.masalahMt(DATA[0]).map(M.teksMasalah), ['PADI hanya MT1']);
+test('masalahMt: padi/jagung bukan tepat 2 PT', () => {
+  assert.deepEqual(M.masalahMt(DATA[0]).map(M.teksMasalah), ['PADI hanya PT1']);
   assert.deepEqual(M.masalahMt(DATA[2]), []);
-  assert.deepEqual(M.masalahMt(DATA[3]).map(M.teksMasalah), ['JAGUNG 3 MT (MT1, MT2, MT3)']);
+  assert.deepEqual(M.masalahMt(DATA[3]).map(M.teksMasalah), ['JAGUNG 3 PT (PT1, PT2, PT3)']);
   assert.deepEqual(M.masalahMt(DATA[5]), []); // kopi 1 PT benar
-  assert.deepEqual(M.masalahMt(DATA[8]).map(M.teksMasalah), ['KOPI 2 PT (MT1, MT2), tahunan maks 1 PT']);
-  assert.deepEqual(M.masalahMt(DATA[7]).map(M.teksMasalah), ['PADI hanya MT1', 'JAGUNG hanya MT2']);
+  assert.deepEqual(M.masalahMt(DATA[8]).map(M.teksMasalah), ['KOPI 2 PT (PT1, PT2), tahunan maks 1 PT']);
+  assert.deepEqual(M.masalahMt(DATA[7]).map(M.teksMasalah), ['PADI hanya PT1', 'JAGUNG hanya PT2']);
 });
 
 test('cari + aksi per status, Not Valid dikecualikan, filter komoditas & poktan', () => {
   const r = M.cari(DATA);
   assert.deepEqual(r.map((x) => `${x.b.statusId}:${x.aksi}`).sort(), ['1:hapus', '1:hapus', '2:batal', '2:batal', '2:batal', '3:']);
   assert.deepEqual(M.hitung(r), { total: 6, batal: 3, hapus: 2, tanpaAksi: 1, padi: 3, jagung: 3, kopi: 1 });
-  assert.deepEqual(M.cari(DATA, { komoditas: 'KOPI' }).map((x) => M.teksMasalah(x.masalah[0])), ['KOPI 2 PT (MT1, MT2), tahunan maks 1 PT']);
+  assert.deepEqual(M.cari(DATA, { komoditas: 'KOPI' }).map((x) => M.teksMasalah(x.masalah[0])), ['KOPI 2 PT (PT1, PT2), tahunan maks 1 PT']);
   assert.equal(M.cari(DATA, { komoditas: 'JAGUNG' }).length, 3);
   assert.equal(M.cari(DATA, { poktan: '2' }).length, 2);
   assert.equal(M.cari(DATA, { status: 'semua' }).length, 7);
@@ -45,7 +45,7 @@ test('cari + aksi per status, Not Valid dikecualikan, filter komoditas & poktan'
   assert.deepEqual(g.map((d) => [d.nama, d.poktan.map((p) => [p.nama, p.item.length])]), [['KOTAWAY', [['POKTAN 1', 4], ['POKTAN 2', 2]]]]);
 });
 
-test('cekSebelumAksi: status harus cocok, isi tidak berubah, MT masih salah', () => {
+test('cekSebelumAksi: status harus cocok, isi tidak berubah, PT masih salah', () => {
   const [batal, hapus] = [DATA[0], DATA[1]];
   assert.equal(M.cekSebelumAksi(DATA, batal, 'batal'), '');
   assert.equal(M.cekSebelumAksi(DATA, hapus, 'hapus'), '');
@@ -56,13 +56,13 @@ test('cekSebelumAksi: status harus cocok, isi tidak berubah, MT masih salah', ()
   assert.match(M.cekSebelumAksi([diperbaiki], batal, 'batal'), /berubah/);
 });
 
-test('Excel Cek MT: kelompok poktan, masalah, aksi', () => {
+test('Excel Cek PT: kelompok poktan, masalah, aksi', () => {
   const L = require('../core/laporan.js');
   const X = require('../../../common/excel.js');
   const g = M.kelompokkan(M.cari(DATA), new Map([['1808022008', 'KOTAWAY']]));
   const teks = new TextDecoder().decode(X.buat(L.susunCekMt({ filterTeks: 'Semua desa' }, g, M.teksMasalah)));
   assert.match(teks, /KOTAWAY — POKTAN 1 — 4 pengajuan/);
-  assert.match(teks, /PADI hanya MT1/);
+  assert.match(teks, /PADI hanya PT1/);
   assert.match(teks, />Batal</);
   assert.match(teks, />Hapus</);
 });

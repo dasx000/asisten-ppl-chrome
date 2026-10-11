@@ -12,7 +12,7 @@ Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Pytho
 |---|---|---|
 | SIMLUH — Update dari Excel | simluh.pertanian.go.id | Ubah & tambah anggota poktan dari file Cetak Excel |
 | e-Banper — Kuota Program | ebanper.pertanian.go.id | Lihat Rancangan Pusat, Telah Diajukan, dan Sisa semua kegiatan sekaligus |
-| e-RDKK — Duplikasi, Cek MT & Rekap Luas | erdkk25.pertanian.go.id | Data ter-upload 2x di **semua** status; padi/jagung yang MT-nya bukan 2 (batal/hapus massal); rekap luas lahan |
+| e-RDKK — Duplikasi, Cek PT & Rekap Luas | erdkk25.pertanian.go.id | Data ter-upload 2x di **semua** status; padi/jagung yang PT-nya bukan 2 (batal/hapus massal); rekap luas lahan |
 
 ## Cara pasang (mode developer)
 
@@ -114,9 +114,9 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
    dulu, lalu hapus. Kalau sudah diproses di atas Korluh (Kasie/Kabid/Kadis), koordinasikan dengan yang bersangkutan.
 5. Klik **Unduh Excel** untuk laporan (lembar Duplikasi + Ringkasan per kelompok tani).
 
-### Cek MT (padi & jagung 2 MT, kopi maks 1 PT)
+### Cek PT (padi & jagung 2 PT, kopi maks 1 PT)
 
-Tab **Cek MT** menampilkan pengajuan **padi/jagung yang diisi 1 MT atau 3 MT** (seharusnya tepat 2 MT setahun)
+Tab **Cek PT** menampilkan pengajuan **padi/jagung yang diisi 1 PT atau 3 PT** (seharusnya tepat 2 PT setahun)
 dan **kopi yang diisi lebih dari 1 PT** (kopi tanaman tahunan),
 dikelompokkan per kampung dan kelompok tani, dengan filter desa, poktan, komoditas, dan status.
 
@@ -125,7 +125,7 @@ dikelompokkan per kampung dan kelompok tani, dengan filter desa, poktan, komodit
 - Tombol tersedia per baris, **per kelompok tani**, dan **semua yang tampil** (ikut filter). Status di atas Korluh tidak punya aksi.
 - Selalu ada konfirmasi berisi daftar nama; hapus lebih dari satu pengajuan harus mengetik **HAPUS**.
   Setiap baris dicek ulang ke data terbaru (masih ada, status sesuai, isi belum diperbaiki) sebelum diproses.
-- **Unduh Excel** berisi daftar pengajuan yang MT-nya salah.
+- **Unduh Excel** berisi daftar pengajuan yang PT-nya salah.
 
 ### Status Upload per kelompok tani
 
@@ -143,13 +143,13 @@ data pengajuan: kelompok yang punya **minimal 1 pengajuan aktif** (bukan ditolak
 Tab **Rekap Luas** di panel yang sama menampilkan luas lahan yang diajukan **per kampung → kelompok tani → komoditas**,
 beserta jumlah petani.
 
-- **Luas = luas lahan per tahun**: dihitung sekali per petani per komoditas, MT1–MT3 tidak dijumlah
-  (bila luas antar MT berbeda, diambil yang terbesar).
-- **Luas Total PT** = jumlah luas semua periode tanam (MT1+MT2+MT3), tampil berdampingan dengan Luas/Tahun. Luas Total PT ÷ Luas/Tahun
-  menunjukkan berapa kali lahan ditanam setahun (mis. padi yang hanya diisi MT1 akan sama dengan Luas/Tahun).
+- **Luas = luas lahan per tahun**: dihitung sekali per petani per komoditas, PT1–PT3 tidak dijumlah
+  (bila luas antar PT berbeda, diambil yang terbesar).
+- **Luas Total PT** = jumlah luas semua periode tanam (PT1+PT2+PT3), tampil berdampingan dengan Luas/Tahun. Luas Total PT ÷ Luas/Tahun
+  menunjukkan berapa kali lahan ditanam setahun (mis. padi yang hanya diisi PT1 akan sama dengan Luas/Tahun).
 - Data dihitung apa adanya, termasuk salinan dobel bila ada.
 - Filter **Kelurahan/Desa**, **Kelompok Tani**, **Komoditas**, dan **Status** (bawaan: semua kecuali ditolak/batal/Not Valid).
-  Pengajuan campuran (mis. padi MT1 + jagung MT2) hanya dihitung bagian komoditas yang dipilih.
+  Pengajuan campuran (mis. padi PT1 + jagung PT2) hanya dihitung bagian komoditas yang dipilih.
 - Tombol **⛶** di kepala panel membesarkan panel selebar layar; klik lagi untuk kembali.
 - Subtotal per poktan dan per kampung, total, dan ringkasan per komoditas.
 - Nama desa dari master wilayah e-RDKK (`/api/wilayah`, sumber menu Master Data → Wilayah). **Unduh Excel** mengikuti filter yang aktif.
@@ -186,7 +186,7 @@ modules/
   erdkk/
     core/api.js          GET /api/pengajuan (semua status) per 500 baris; POST delete-pengajuan / batal-pengajuan
     core/duplikasi.js    sidik baris (semua kolom kecuali id/status/cap waktu) → kelompok identik lintas status
-    core/cekmt.js        padi/jagung yang jumlah MT-nya bukan 2, aturan Batal (status 2) / Hapus (status 1)
+    core/cekmt.js        padi/jagung yang jumlah PT-nya bukan 2, aturan Batal (status 2) / Hapus (status 1)
     core/upload.js       status upload per poktan (master /api/poktan vs pengajuan aktif)
     core/rekap.js        rekap luas lahan & pupuk per desa → poktan → komoditas, filter desa/poktan/status
     core/laporan.js      tata letak Excel duplikasi & rekap luas
