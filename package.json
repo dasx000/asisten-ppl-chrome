@@ -1,0 +1,10 @@
+{
+  "name": "asisten-penyuluh",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Ekstensi Chrome/Edge Asisten Penyuluh (multi-modul)",
+  "scripts": {
+    "test": "node --test \"modules/*/test/*.test.js\"",
+    "pack": "python pack.py"
+  }
+}

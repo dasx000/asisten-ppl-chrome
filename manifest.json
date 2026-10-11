@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Asisten Penyuluh",
+  "version": "0.2.0",
+  "description": "Alat bantu tidak resmi untuk tugas penyuluh di berbagai aplikasi. Modul: SIMLUH (update anggota poktan dari Excel).",
+  "icons": {
+    "16": "icons/ikon16.png",
+    "48": "icons/ikon48.png",
+    "128": "icons/ikon128.png"
+  },
+  "permissions": ["storage"],
+  "action": {
+    "default_title": "Asisten Penyuluh",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/ikon16.png",
+      "48": "icons/ikon48.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://simluh.pertanian.go.id/listpoktananggota*",
+        "https://simluh.pertanian.go.id/KelembagaanPelakuUtama/KelompokTani/ListPoktanAnggota*"
+      ],
+      "js": [
+        "common/modul.js",
+        "lib/xlsx.full.min.js",
+        "modules/simluh/core/aturan.js",
+        "modules/simluh/core/api.js",
+        "modules/simluh/core/proses.js",
+        "modules/simluh/content/panel.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["modules/simluh/content/panel.css"],
+      "matches": ["https://simluh.pertanian.go.id/*"]
+    }
+  ]
+}
