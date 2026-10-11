@@ -41,6 +41,7 @@
       poktanId: teks(x.farmer_group_id),
       poktan: teks(x.farmer_group_name),
       desa: teks(x.sub_district_code),
+      kecamatan: teks(x.district_code),
       statusId: angka(x.status && x.status.id),
       status: teks(x.status && x.status.name) || `Status ${angka(x.status && x.status.id)}`,
       penyuluh: teks(x.instructor_name),

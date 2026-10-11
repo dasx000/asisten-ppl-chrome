@@ -1,4 +1,4 @@
-// ================= PANEL "CEK DUPLIKASI" DI e-RDKK ================= \\
+// ================= PANEL ASISTEN e-RDKK: CEK DUPLIKASI & REKAP LUAS ================= \\
 // Aturan sama dengan Monitoring Duplikasi bawaan (baris identik semua kolom = ter-upload 2x), tapi memeriksa
 // SEMUA status pengajuan, bukan hanya "Belum dikirim ke Korluh".
 // Aksi (endpoint sama dengan tombol bawaan menu Pengajuan), selalu dengan konfirmasi & cek ulang data terbaru:
@@ -14,7 +14,7 @@
   // Hanya setelah login (menu samping e-RDKK punya tautan Pengajuan)
   if (!document.querySelector('a[href$="/pengajuan"]')) return;
 
-  const API = window.ErdkkApi, D = window.ErdkkDuplikasi, L = window.ErdkkLaporan;
+  const API = window.ErdkkApi, D = window.ErdkkDuplikasi, L = window.ErdkkLaporan, R = window.ErdkkRekap;
 
   const st = {
     buka: false,
@@ -28,6 +28,9 @@
     menghapus: null, // { teks, i, n } saat proses hapus berjalan
     henti: false, // diminta berhenti di tengah hapus massal
     info: null, // { jenis: 'ok'|'galat', teks } hasil aksi terakhir
+    tab: 'dup', // dup | rekap
+    namaDesa: new Map(), // kode desa → nama
+    fr: { desa: '', poktan: '', status: '' }, // filter rekap ('' status = aktif)
   };
   const sibuk = () => st.tahap === 'memuat' || !!st.menghapus;
 
@@ -51,10 +54,10 @@
   const host = h('div', { id: 'asisten-erdkk-duplikasi' });
   const akar = host.attachShadow({ mode: 'open' });
   akar.append(h('link', { rel: 'stylesheet', href: chrome.runtime.getURL('modules/erdkk/content/panel.css') }));
-  const fab = h('button', { class: 'fab', type: 'button', onclick: () => setBuka(true), title: 'Asisten PPL — Cek Duplikasi' },
-    h('span', { class: 'fab-ikon', 'aria-hidden': 'true' }, '⧉'), 'Cek Duplikasi');
+  const fab = h('button', { class: 'fab', type: 'button', onclick: () => setBuka(true), title: 'Asisten PPL — e-RDKK' },
+    h('span', { class: 'fab-ikon', 'aria-hidden': 'true' }, '⧉'), 'Asisten e-RDKK');
   const latar = h('div', { class: 'latar', onclick: () => setBuka(false) });
-  const laci = h('aside', { class: 'laci', role: 'dialog', 'aria-label': 'Cek Duplikasi e-RDKK' });
+  const laci = h('aside', { class: 'laci', role: 'dialog', 'aria-label': 'Asisten e-RDKK' });
   akar.append(fab, latar, laci);
   document.body.append(host);
 
@@ -86,6 +89,8 @@
       const mentah = await API.semuaPengajuan({ onProgres: (n, total) => { st.progres = { n, total }; render(); } });
       st.baris = mentah.map(D.normalisasi);
       st.waktu = new Date().toISOString();
+      const kecBelum = [...new Set(st.baris.map((b) => b.kecamatan))].filter((k) => k && ![...st.namaDesa.keys()].some((d) => d.startsWith(k)));
+      if (kecBelum.length) for (const [k, v] of await API.namaDesa(kecBelum)) st.namaDesa.set(k, v);
       if (!st.baris.length) st.galat = 'Tidak ada data pengajuan yang terbaca dari akun ini.';
     } catch (e) {
       console.error('[Asisten e-RDKK]', e);
@@ -106,19 +111,27 @@
     if (!st.buka) return;
     const fokus = akar.activeElement && akar.activeElement.name;
     const tahun = st.baris[0] && st.baris[0].tahun;
+    laci.classList.toggle('lebar', st.tab === 'rekap');
     laci.replaceChildren(
       h('header', { class: 'kepala' },
         h('div', {},
-          h('div', { class: 'judul' }, 'Cek Duplikasi e-RDKK'),
-          h('div', { class: 'sub' }, `Baris identik di semua status${tahun ? ` · Tahun ${tahun}` : ''}`)),
+          h('div', { class: 'judul' }, 'Asisten e-RDKK'),
+          h('div', { class: 'sub' }, st.tab === 'rekap'
+            ? `Rekap luas lahan per kampung, poktan, komoditas${tahun ? ` · Tahun ${tahun}` : ''}`
+            : `Cek duplikasi: baris identik di semua status${tahun ? ` · Tahun ${tahun}` : ''}`)),
         h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕')),
+      h('nav', { class: 'tab-utama', role: 'tablist' },
+        [['dup', '⧉ Cek Duplikasi'], ['rekap', '▦ Rekap Luas']].map(([k, l]) => h('button', {
+          type: 'button', role: 'tab', 'aria-selected': String(st.tab === k), class: st.tab === k ? 'aktif' : '',
+          disabled: !!st.menghapus, onclick: () => { st.tab = k; render(); },
+        }, l))),
       h('div', { class: 'isi' },
         st.galat && h('div', { class: 'galat', role: 'alert' }, st.galat),
         st.info && h('div', { class: `info ${st.info.jenis}`, role: 'status' }, st.info.teks),
         st.menghapus && h('div', { class: 'progres' }, h('div', { class: 'progres-judul' }, st.menghapus.teks),
           st.menghapus.n > 1 && h('div', { class: 'bar' }, h('div', { class: 'bar-isi', style: `width:${Math.round((st.menghapus.i / st.menghapus.n) * 100)}%` }))),
         sibuk() && viewProgres(),
-        st.baris.length && viewHasil()),
+        st.baris.length && (st.tab === 'rekap' ? viewRekap() : viewHasil())),
       viewAksi());
     if (fokus) {
       const el = akar.querySelector(`[name="${fokus}"]`);
@@ -215,6 +228,13 @@
   }
 
   function viewAksi() {
+    if (st.tab === 'rekap') {
+      return h('footer', { class: 'aksi' },
+        h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : '↻ Baca ulang data'),
+        st.baris.length ? h('button', { class: 'kedua', type: 'button', onclick: unduhRekap }, 'Unduh Excel') : null,
+        h('p', { class: 'aksi-ket' }, 'Hanya membaca data e-RDKK dengan akun Anda. Data tidak disimpan di browser. ' +
+          'Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
+    }
     const ada = st.baris.length && hasil().kelompok.length;
     const semua = ada ? D.semuaSalinanHapus(D.saring(hasil().kelompok, st.f)) : [];
     const nPetani = new Set(semua.map((x) => x.k)).size;
@@ -321,6 +341,80 @@
     }
     st.menghapus = null;
     await muat(true);
+  }
+
+  // ─── Rekap luas ────────────────────────────────────────────────────────────
+  const fmtLuas = (n) => Number(n || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtKg = (n) => Number(n || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 });
+
+  function teksFilterRekap() {
+    const p = R.pilihan(st.baris, st.namaDesa, st.fr.desa);
+    const nama = (arr, id) => (arr.find((x) => String(x.id) === String(id)) || {}).nama || id;
+    return [
+      st.fr.desa ? `Desa ${nama(p.desa, st.fr.desa)}` : 'Semua desa',
+      st.fr.poktan ? `Poktan ${nama(p.poktan, st.fr.poktan)}` : 'semua poktan',
+      st.fr.status === 'semua' ? 'semua status' : st.fr.status ? `status "${nama(p.status, st.fr.status)}"` : 'semua status kecuali ditolak/batal/Not Valid',
+    ].join(' · ');
+  }
+
+  function viewRekap() {
+    const p = R.pilihan(st.baris, st.namaDesa, st.fr.desa);
+    if (st.fr.poktan && !p.poktan.some((x) => x.id === st.fr.poktan)) st.fr.poktan = '';
+    const r = R.rekap(R.saringBaris(st.baris, st.fr), st.namaDesa);
+    const ubah = (k, v) => { st.fr[k] = v; if (k === 'desa') st.fr.poktan = ''; render(); };
+    const sel = (name, nilai, opsi, semua) => h('label', { class: 'pilih' }, h('span', {}, semua.label),
+      h('select', { name, onchange: (e) => ubah(name, e.target.value) },
+        semua.opsi.map(([v, l]) => h('option', { value: v, selected: nilai === v }, l)),
+        opsi.map((o) => h('option', { value: String(o.id), selected: nilai === String(o.id) }, o.nama))));
+    const sel3 = h('section', { class: 'filter-rekap' },
+      sel('desa', st.fr.desa, p.desa, { label: 'Kelurahan/Desa', opsi: [['', 'Semua desa']] }),
+      sel('poktan', st.fr.poktan, p.poktan, { label: 'Kelompok Tani', opsi: [['', 'Semua poktan']] }),
+      sel('status', st.fr.status, p.status, { label: 'Status', opsi: [['', 'Semua (kecuali ditolak/batal/Not Valid)'], ['semua', 'Semua status']] }));
+
+    const sel1 = (t) => [h('td', { class: 'n' }, fmtKg(t.petani)), h('td', { class: 'n tebal' }, fmtLuas(t.luas)),
+      ...R.PUPUK_REKAP.map(([k]) => h('td', { class: 'n' }, fmtKg(t.pupuk[k])))];
+    const body = [];
+    for (const d of r.desa) {
+      body.push(h('tr', { class: 'desa' }, h('td', { colspan: 2 }, d.nama), ...sel1(d.total)));
+      for (const pk of d.poktan) {
+        pk.komoditas.forEach((k, i) => body.push(h('tr', {},
+          h('td', { class: 'poktan' }, i === 0 ? pk.nama : ''), h('td', {}, k.komoditas), ...sel1(k))));
+        if (pk.komoditas.length > 1) body.push(h('tr', { class: 'sub' }, h('td', { class: 'poktan' }, `Subtotal ${pk.nama}`), h('td', {}, ''), ...sel1(pk.total)));
+      }
+    }
+    return [
+      sel3,
+      h('section', { class: 'ringkas-atas' },
+        h('div', { class: 'angka-besar hijau' }, h('b', {}, fmtLuas(r.total.luas)), h('span', {}, 'ha luas lahan')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, fmtKg(r.total.petani)), h('span', {}, 'petani (baris)')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, r.perKomoditas.map((k) => k.komoditas).join(', ') || '-'), h('span', {}, 'komoditas'))),
+      r.perKomoditas.length > 1 && h('p', { class: 'diperbarui' }, r.perKomoditas.map((k) => `${k.komoditas} ${fmtLuas(k.luas)} ha`).join(' · ')),
+      !r.desa.length ? h('p', { class: 'kosong' }, 'Tidak ada data untuk filter ini.')
+        : h('div', { class: 'tabel-rekap' }, h('table', {},
+          h('thead', {}, h('tr', {}, ['Kampung / Poktan', 'Komoditas', 'Petani', 'Luas (ha)', 'Urea', 'NPK', 'NPK-F', 'Organik']
+            .map((t, i) => h('th', { class: i > 1 ? 'n' : '' }, t)))),
+          h('tbody', {}, body),
+          h('tfoot', {}, h('tr', {}, h('td', { colspan: 2 }, 'TOTAL'), ...sel1(r.total))))),
+      h('p', { class: 'diperbarui' }, 'Luas = luas lahan per tahun (dihitung sekali, MT tidak dijumlah). Pupuk dalam kg, jumlah MT1–MT3. ' +
+        'Data dihitung apa adanya, termasuk salinan dobel.'),
+    ];
+  }
+
+  function unduhRekap() {
+    const r = R.rekap(R.saringBaris(st.baris, st.fr), st.namaDesa);
+    const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterRekap() };
+    unduhFile(window.AsistenExcel.buat(L.susunRekap(info, r)), 'Rekap Luas e-RDKK');
+  }
+
+  function unduhFile(data, awalan) {
+    const url = URL.createObjectURL(new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const t = new Date(st.waktu || Date.now());
+    const dua = (x) => String(x).padStart(2, '0');
+    const a = h('a', { href: url, download: `${awalan} - ${t.getFullYear()}-${dua(t.getMonth() + 1)}-${dua(t.getDate())} ${dua(t.getHours())}.${dua(t.getMinutes())}.xlsx` });
+    akar.append(a);
+    a.click(); // klik di dalam Shadow DOM, tidak tertangkap skrip halaman
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
   function unduh() {

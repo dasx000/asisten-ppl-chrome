@@ -20,8 +20,8 @@
     },
     {
       id: 'erdkk',
-      nama: 'e-RDKK — Cek Duplikasi',
-      ket: 'Cari NIK dobel di semua status pengajuan (bawaan e-RDKK hanya memeriksa yang belum dikirim ke Korluh).',
+      nama: 'e-RDKK — Cek Duplikasi & Rekap Luas',
+      ket: 'Cari data dobel di semua status pengajuan, dan rekap luas lahan per kampung, poktan, dan komoditas.',
       situs: 'https://erdkk25.pertanian.go.id/pengajuan',
     },
   ];

@@ -12,7 +12,7 @@ Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Pytho
 |---|---|---|
 | SIMLUH — Update dari Excel | simluh.pertanian.go.id | Ubah & tambah anggota poktan dari file Cetak Excel |
 | e-Banper — Kuota Program | ebanper.pertanian.go.id | Lihat Rancangan Pusat, Telah Diajukan, dan Sisa semua kegiatan sekaligus |
-| e-RDKK — Cek Duplikasi | erdkk25.pertanian.go.id | Cari data ter-upload 2x di **semua** status, bukan hanya yang belum dikirim ke Korluh |
+| e-RDKK — Cek Duplikasi & Rekap Luas | erdkk25.pertanian.go.id | Cari data ter-upload 2x di **semua** status; rekap luas lahan per kampung, poktan, komoditas |
 
 ## Cara pasang (mode developer)
 
@@ -114,6 +114,17 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
    dulu, lalu hapus. Kalau sudah diproses di atas Korluh (Kasie/Kabid/Kadis), koordinasikan dengan yang bersangkutan.
 5. Klik **Unduh Excel** untuk laporan (lembar Duplikasi + Ringkasan per kelompok tani).
 
+### Rekap Luas
+
+Tab **Rekap Luas** di panel yang sama menampilkan luas lahan yang diajukan **per kampung → kelompok tani → komoditas**,
+beserta jumlah petani dan pupuk per tahun (Urea, NPK, NPK Formula, Organik).
+
+- **Luas = luas lahan per tahun**: dihitung sekali per petani per komoditas, MT1–MT3 tidak dijumlah
+  (bila luas antar MT berbeda, diambil yang terbesar). Pupuk = jumlah MT1–MT3.
+- Data dihitung apa adanya, termasuk salinan dobel bila ada.
+- Filter **Kelurahan/Desa**, **Kelompok Tani**, dan **Status** (bawaan: semua kecuali ditolak/batal/Not Valid).
+- Subtotal per poktan dan per kampung, total, dan ringkasan per komoditas. **Unduh Excel** mengikuti filter yang aktif.
+
 ---
 
 ## Untuk pengembang
@@ -146,7 +157,8 @@ modules/
   erdkk/
     core/api.js          GET /api/pengajuan (semua status) per 500 baris; POST delete-pengajuan / batal-pengajuan
     core/duplikasi.js    sidik baris (semua kolom kecuali id/status/cap waktu) → kelompok identik lintas status
-    core/laporan.js      tata letak Excel duplikasi + ringkasan per kelompok tani
+    core/rekap.js        rekap luas lahan & pupuk per desa → poktan → komoditas, filter desa/poktan/status
+    core/laporan.js      tata letak Excel duplikasi & rekap luas
     content/panel.js     panel Cek Duplikasi (Shadow DOM), data tidak disimpan
     content/panel.css
     test/                test Node (tidak ikut ZIP)

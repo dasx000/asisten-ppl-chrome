@@ -113,7 +113,74 @@
     return [sheet1, sheet2];
   }
 
-  const api = { susun, waktu };
+  // ─── Rekap luas per kampung → poktan → komoditas ───────────────────────────
+  const KOLOM_REKAP = [['No', 5], ['Kampung/Desa', 20], ['Kelompok Tani', 24], ['Komoditas', 14], ['Jumlah Petani', 10],
+    ['Luas Lahan (ha)', 12], ['Urea (kg)', 11], ['NPK (kg)', 11], ['NPK Formula (kg)', 12], ['Organik (kg)', 11]];
+  const PUPUK = ['urea', 'npk', 'npk_formula', 'organic'];
+
+  /** info: { waktu, tahun, filterTeks } · r: hasil ErdkkRekap.rekap */
+  function susunRekap(info, r) {
+    const N = KOLOM_REKAP.length;
+    const kosong = () => Array.from({ length: N }, () => null);
+    const judul = (v, s) => { const x = kosong(); x[0] = isi(v, s); return x; };
+    const angka = (t, gaya) => [
+      isi(t.petani, { ...dasar, align: 'center', ...gaya }),
+      isi(t.luas, { ...dasar, fmt: '#,##0.00', align: 'right', bold: true, ...gaya }),
+      ...PUPUK.map((p) => isi(t.pupuk[p], { ...dasar, fmt: '#,##0', align: 'right', ...gaya })),
+    ];
+    const rows = [
+      judul('REKAP LUAS LAHAN e-RDKK PER KAMPUNG, KELOMPOK TANI, DAN KOMODITAS', { bold: true, size: 15, color: W.hijauTua }),
+      judul(`Tahun ${info.tahun || ''} · luas lahan per tahun (dihitung sekali, bukan per MT) · pupuk = jumlah MT1–MT3`, { bold: true }),
+      judul(`${info.filterTeks || 'Semua data'} · ${r.jumlahBaris} pengajuan · diambil ${waktu(info.waktu)}`, { italic: true, color: W.abu }),
+      kosong(),
+      KOLOM_REKAP.map(([k]) => isi(k, { ...dasar, bold: true, color: W.putih, fill: W.hijau, align: 'center', wrap: true })),
+    ];
+    const tinggi = { 0: 24, 4: 32 };
+    const barisHeader = rows.length;
+    let no = 0;
+    for (const d of r.desa) {
+      for (const p of d.poktan) {
+        p.komoditas.forEach((k, i) => {
+          no++;
+          rows.push([
+            isi(no, { ...dasar, align: 'center', color: W.abu }),
+            isi(i === 0 ? d.nama : '', dasar),
+            isi(i === 0 ? p.nama : '', { ...dasar, bold: i === 0 }),
+            isi(k.komoditas, dasar),
+            ...angka(k, {}),
+          ]);
+        });
+        rows.push([isi('', { ...dasar, fill: W.abuMuda }), isi('', { ...dasar, fill: W.abuMuda }),
+          isi(`Subtotal ${p.nama}`, { ...dasar, fill: W.abuMuda, italic: true }), isi('', { ...dasar, fill: W.abuMuda }),
+          ...angka(p.total, { fill: W.abuMuda, italic: true })]);
+      }
+      rows.push([isi('', { ...dasar, fill: W.hijauMuda }), isi(`SUBTOTAL ${d.nama.toUpperCase()}`, { ...dasar, fill: W.hijauMuda, bold: true, color: W.hijauTua }),
+        isi('', { ...dasar, fill: W.hijauMuda }), isi('', { ...dasar, fill: W.hijauMuda }),
+        ...angka(d.total, { fill: W.hijauMuda, bold: true, color: W.hijauTua })]);
+    }
+    rows.push([isi('', { ...dasar, fill: W.hijau }), isi('TOTAL', { ...dasar, fill: W.hijau, bold: true, color: W.putih }),
+      isi('', { ...dasar, fill: W.hijau }), isi('', { ...dasar, fill: W.hijau }), ...angka(r.total, { fill: W.hijau, bold: true, color: W.putih })]);
+    rows.push(kosong());
+    rows.push(judul('Keterangan: luas lahan dihitung sekali per petani per komoditas (MT tidak dijumlah). Data dihitung apa adanya, ' +
+      'termasuk salinan dobel bila ada. Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.', { size: 10, color: W.abu }));
+    const s1 = { nama: 'Rekap Luas', kolom: KOLOM_REKAP.map(([, w]) => w), baris: rows, tinggi, bekukan: barisHeader,
+      lanskap: true, judulCetak: `${barisHeader}:${barisHeader}` };
+
+    // Ringkasan per komoditas
+    const H = ['Komoditas', 'Jumlah Petani', 'Luas Lahan (ha)', 'Urea (kg)', 'NPK (kg)', 'NPK Formula (kg)', 'Organik (kg)'];
+    const rr = [
+      [isi('RINGKASAN PER KOMODITAS', { bold: true, size: 14, color: W.hijauTua }), null, null, null, null, null, null],
+      [isi(info.filterTeks || 'Semua data', { italic: true, color: W.abu }), null, null, null, null, null, null],
+      [null, null, null, null, null, null, null],
+      H.map((k) => isi(k, { ...dasar, bold: true, color: W.putih, fill: W.hijau, align: 'center', wrap: true })),
+      ...r.perKomoditas.map((k) => [isi(k.komoditas, { ...dasar, bold: true }), ...angka(k, {})]),
+      [isi('TOTAL', { ...dasar, bold: true, fill: W.hijauMuda }), ...angka(r.total, { fill: W.hijauMuda, bold: true })],
+    ];
+    const s2 = { nama: 'Per Komoditas', kolom: [18, 12, 14, 12, 12, 14, 12], baris: rr, tinggi: { 0: 22, 3: 32 } };
+    return [s1, s2];
+  }
+
+  const api = { susun, susunRekap, waktu };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkLaporan = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

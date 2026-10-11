@@ -59,6 +59,20 @@
     return hasil;
   }
 
+  /** Nama desa/kelurahan per kecamatan: Map kode desa → nama. Kecamatan yang gagal dibaca dilewati (tampil sebagai kode). */
+  async function namaDesa(kodeKecamatan, opsi = {}) {
+    const peta = new Map();
+    for (const kode of [...new Set(kodeKecamatan)].filter(Boolean)) {
+      try {
+        const j = await ambilJson(`/api/areas-sub-district?district_code=${encodeURIComponent(kode)}`, opsi.fetch);
+        for (const d of j.data || []) if (d.sub_district_code) peta.set(String(d.sub_district_code), String(d.sub_district || '').trim());
+      } catch (e) {
+        if (e instanceof SesiHabis) throw e;
+      }
+    }
+    return peta;
+  }
+
   /** Token CSRF halaman e-RDKK (meta csrf-token), sama seperti yang dipakai tombol Hapus bawaan. */
   function tokenHalaman(doc = root.document) {
     const m = doc && doc.querySelector('meta[name="csrf-token"]');
@@ -108,7 +122,7 @@
   const batal = (id, opsi) => kirimAksi('/api/batal-pengajuan',
     { id: String(id), sub_district_code: '', kelompokTani: '' }, 'pembatalan', opsi);
 
-  const api = { ServerSibuk, SesiHabis, ambilJson, semuaPengajuan, tokenHalaman, hapus, batal, PER_HALAMAN };
+  const api = { ServerSibuk, SesiHabis, ambilJson, semuaPengajuan, namaDesa, tokenHalaman, hapus, batal, PER_HALAMAN };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkApi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

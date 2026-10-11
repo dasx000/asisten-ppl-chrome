@@ -158,6 +158,27 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 }
 .hapus-semua:hover { background: #8f1c13; }
 .kedua.penuh { flex-basis: 100%; }
+.laci.lebar { width: min(820px, 100vw); }
+.tab-utama { display: flex; gap: 4px; padding: 8px 20px 0; background: var(--hijau); }
+.tab-utama button {
+  padding: 8px 14px; border: 0; border-radius: 8px 8px 0 0; background: rgba(255, 255, 255, .15);
+  color: #fff; font-weight: 600;
+}
+.tab-utama button.aktif { background: #f7f8fa; color: var(--hijau-tua); }
+.filter-rekap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.pilih { display: grid; gap: 3px; font-size: 12px; color: var(--teks-lemah); }
+.pilih select { width: 100%; padding: 8px 9px; border: 1.5px solid var(--garis); border-radius: 8px; background: #fff; font-size: 13px; color: var(--teks); }
+.ringkas-atas .angka-besar b { overflow-wrap: anywhere; }
+.tabel-rekap { overflow-x: auto; border: 1px solid var(--garis); border-radius: var(--radius); background: #fff; margin-top: 8px; }
+.tabel-rekap table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tabel-rekap th, .tabel-rekap td { padding: 6px 8px; border-bottom: 1px solid var(--garis); text-align: left; white-space: nowrap; }
+.tabel-rekap th { position: sticky; top: 0; background: var(--hijau); color: #fff; font-weight: 600; }
+.tabel-rekap .n { text-align: right; font-variant-numeric: tabular-nums; }
+.tabel-rekap .tebal { font-weight: 700; }
+.tabel-rekap tr.desa td { background: var(--hijau-muda); color: var(--hijau-tua); font-weight: 700; }
+.tabel-rekap td.poktan { padding-left: 18px; font-weight: 600; white-space: normal; }
+.tabel-rekap tr.sub td { background: var(--abu-muda); font-style: italic; }
+.tabel-rekap tfoot td { background: var(--hijau); color: #fff; font-weight: 700; border-bottom: 0; }
 .info { margin-bottom: 12px; padding: 11px 13px; border-radius: var(--radius); font-weight: 500; }
 .info.ok { background: var(--hijau-muda); color: var(--hijau-tua); border: 1px solid #bfe0cc; }
 .info.galat { background: var(--merah-muda); color: var(--merah); border: 1px solid #f5c2bd; }
@@ -180,5 +201,6 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   .fab { right: 12px; bottom: 12px; padding: 11px 15px; }
   .isi, .kepala, .aksi { padding-left: 14px; padding-right: 14px; }
   .angka-besar b { font-size: 18px; }
+  .filter-rekap { grid-template-columns: 1fr; }
   .filter-baris { grid-template-columns: 1fr; }
 }
