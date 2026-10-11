@@ -19,7 +19,7 @@
     berhenti: false,
     galat: '',
     f: { cari: '', subsektor: '', status: 'semua', tampilKosong: false },
-    terbuka: new Set(), // id kegiatan yang rinciannya dibuka
+    terbuka: null, // id kegiatan yang rinciannya sedang dibuka (hanya satu, membuka yang lain menutup ini)
   };
   const sibuk = () => st.tahap === 'memuat';
   const fmt = (n) => Number(n || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 });
@@ -200,7 +200,7 @@
   const LABEL = { tersedia: 'Masih ada sisa', habis: 'Kuota habis', lebih: 'Melebihi kuota', kosong: 'Tanpa kuota' };
 
   function kartu(b) {
-    const buka = st.terbuka.has(b.id);
+    const buka = st.terbuka === b.id;
     const lebar = Math.min(100, Math.max(0, b.persen));
     return h('li', { class: `kartu ${NADA[b.status]}` },
       h('div', { class: 'kartu-kepala' },
@@ -215,7 +215,7 @@
       b.rancangan > 0 && h('div', { class: 'bar kecil', title: `${b.persen}% terpakai` },
         h('div', { class: 'bar-isi', style: `width:${lebar}%` })),
       h('button', { type: 'button', class: 'rinci-tombol', 'aria-expanded': String(buka),
-        onclick: () => { buka ? st.terbuka.delete(b.id) : st.terbuka.add(b.id); render(); } },
+        onclick: () => { st.terbuka = buka ? null : b.id; render(); } },
       buka ? '▾ Sembunyikan rincian' : `▸ Rincian${b.rancangan ? ` · ${b.persen}% terpakai` : ''}`),
       buka && h('dl', { class: 'rinci' },
         b.ro && [h('dt', {}, 'Rincian Output'), h('dd', {}, b.ro)],
