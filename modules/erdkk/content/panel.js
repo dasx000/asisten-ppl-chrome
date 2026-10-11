@@ -60,7 +60,7 @@
   const akar = host.attachShadow({ mode: 'open' });
   akar.append(h('link', { rel: 'stylesheet', href: chrome.runtime.getURL('modules/erdkk/content/panel.css') }));
   const fab = h('button', { class: 'fab', type: 'button', onclick: () => setBuka(true), title: 'Asisten PPL — e-RDKK' },
-    h('span', { class: 'fab-ikon', 'aria-hidden': 'true' }, '⧉'), 'Asisten e-RDKK');
+    'Asisten e-RDKK');
   const latar = h('div', { class: 'latar', onclick: () => setBuka(false) });
   const laci = h('aside', { class: 'laci', role: 'dialog', 'aria-label': 'Asisten e-RDKK' });
   akar.append(fab, latar, laci);
@@ -135,10 +135,10 @@
         h('div', { class: 'tombol-kepala' },
           h('button', { class: 'tutup', type: 'button', title: st.penuh ? 'Kecilkan panel' : 'Perbesar panel selebar layar',
             'aria-label': st.penuh ? 'Kecilkan panel' : 'Perbesar panel', onclick: () => { st.penuh = !st.penuh; render(); } },
-          st.penuh ? '⤡' : '⛶'),
+          st.penuh ? 'Perkecil' : 'Perbesar'),
           h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕'))),
       h('nav', { class: 'tab-utama', role: 'tablist' },
-        [['dup', '⧉ Cek Duplikasi'], ['mt', '⚠ Cek MT'], ['rekap', '▦ Rekap Luas'], ['up', '☑ Status Upload']].map(([k, l]) => h('button', {
+        [['dup', 'Cek Duplikasi'], ['mt', 'Cek MT'], ['rekap', 'Rekap Luas'], ['up', 'Status Upload']].map(([k, l]) => h('button', {
           type: 'button', role: 'tab', 'aria-selected': String(st.tab === k), class: st.tab === k ? 'aktif' : '',
           disabled: !!st.menghapus, onclick: () => { st.tab = k; render(); },
         }, l))),
@@ -196,7 +196,7 @@
           [['semua', `Semua (${n.kelompok})`], ['luput', `Tidak terdeteksi e-RDKK (${n.luput})`], ['lintas', `Lintas status (${n.lintas})`]]
             .map(([k, l]) => h('button', { type: 'button', class: st.f.jenis === k ? 'aktif' : '', onclick: () => ubahF('jenis', k) }, l)))),
       !r.kelompok.length
-        ? h('div', { class: 'aman' }, '✅ Tidak ada data dobel (baris identik) di semua status.')
+        ? h('div', { class: 'aman' }, 'Tidak ada data dobel (baris identik) di semua status.')
         : tampil.length ? h('ul', { class: 'daftar' }, tampil.map(kartu)) : h('p', { class: 'kosong' }, 'Tidak ada yang cocok dengan filter.'),
     ];
   }
@@ -217,7 +217,7 @@
         h('div', { class: 'meta' }, `NIK ${k.nik} · ${k.subsektor} · ${k.poktan || 'Desa ' + k.desa}`),
         h('div', { class: 'meta' }, statusRingkas),
         h('div', { class: 'tag' }, tag)),
-      h('span', { class: 'panah', 'aria-hidden': 'true' }, buka ? '▾' : '▸')),
+      h('span', { class: 'panah' + (buka ? ' buka' : ''), 'aria-hidden': 'true' })),
       buka && h('div', { class: 'rinci' },
         h('table', {},
           h('thead', {}, h('tr', {}, ['Status', 'Dibuat', 'MT1', 'MT2', 'MT3', 'ID', 'Aksi'].map((t) => h('th', {}, t)))),
@@ -234,7 +234,7 @@
                 : h('span', { class: 'tetap', title: b.statusId === D.STATUS_DRAF ? 'Disisakan satu' : 'Sudah diproses di atas Korluh, tidak bisa dibatalkan penyuluh' }, '—')))))),
         D.salinanHapus(k).length > 0 && h('div', { class: 'aksi-kartu' },
           h('button', { type: 'button', class: 'hapus besar', disabled: sibuk(), onclick: () => hapusBaris(k, D.salinanHapus(k)) },
-            `🗑 Hapus ${D.salinanHapus(k).length} salinan, sisakan 1`)),
+            `Hapus ${D.salinanHapus(k).length} salinan, sisakan 1`)),
         h('p', { class: 'saran' }, k.bisaDihapus
           ? (k.bisaDihapus === k.baris.length
             ? 'Semua baris masih "Belum dikirim ke Korluh". Tombol di atas menghapus salinannya dan menyisakan yang paling awal dibuat.'
@@ -248,13 +248,13 @@
     if (st.tab === 'mt') return viewAksiMt();
     if (st.tab === 'up') {
       return h('footer', { class: 'aksi' },
-        h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : '↻ Baca ulang data'),
+        h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : 'Baca ulang data'),
         st.poktanMaster.length ? h('button', { class: 'kedua', type: 'button', onclick: unduhUpload }, 'Unduh Excel') : null,
         h('p', { class: 'aksi-ket' }, 'Hanya membaca data e-RDKK dengan akun Anda. Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
     }
     if (st.tab === 'rekap') {
       return h('footer', { class: 'aksi' },
-        h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : '↻ Baca ulang data'),
+        h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Membaca…' : 'Baca ulang data'),
         st.baris.length ? h('button', { class: 'kedua', type: 'button', onclick: unduhRekap }, 'Unduh Excel') : null,
         h('p', { class: 'aksi-ket' }, 'Hanya membaca data e-RDKK dengan akun Anda. Data tidak disimpan di browser. ' +
           'Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
@@ -264,10 +264,10 @@
     const nPetani = new Set(semua.map((x) => x.k)).size;
     return h('footer', { class: 'aksi' },
       st.menghapus && st.menghapus.n > 1 && h('button', { class: 'kedua penuh', type: 'button', disabled: st.henti,
-        onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : '⏸ Hentikan penghapusan'),
+        onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : 'Hentikan'),
       !sibuk() && semua.length > 0 && h('button', { class: 'hapus-semua', type: 'button', onclick: () => hapusSemua(semua) },
-        `🗑 Hapus semua salinan (${semua.length} baris, ${nPetani} petani)`),
-      h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memeriksa…' : st.baris.length ? '↻ Periksa ulang' : 'Periksa duplikasi'),
+        `Hapus semua salinan (${semua.length} baris, ${nPetani} petani)`),
+      h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memeriksa…' : st.baris.length ? 'Periksa ulang' : 'Periksa duplikasi'),
       ada ? h('button', { class: 'kedua', type: 'button', onclick: unduh }, 'Unduh Excel') : null,
       h('p', { class: 'aksi-ket' }, 'Data dibaca dengan akun Anda. Hapus/Batal hanya terjadi saat Anda mengklik dan menyetujui konfirmasi. ' +
         'Data tidak disimpan di browser. ' +
@@ -334,7 +334,7 @@
     const henti = dilewati ? ` Dihentikan, ${dilewati} salinan belum diproses.` : '';
     st.info = gagal.length
       ? { jenis: 'galat', teks: `${ok.length} salinan (${label}) terhapus.${henti} Tidak dihapus: ${gagal.join('; ')}` }
-      : { jenis: dilewati ? 'galat' : 'ok', teks: `${dilewati ? '⏸' : '✅'} ${ok.length} salinan (${label}) berhasil dihapus.${henti} Data sudah diperiksa ulang.` };
+      : { jenis: dilewati ? 'galat' : 'ok', teks: `${ok.length} salinan (${label}) berhasil dihapus.${henti} Data sudah diperiksa ulang.` };
     await muat(true); // baca ulang supaya daftar sesuai kondisi terbaru
   }
 
@@ -356,9 +356,9 @@
       await API.batal(b.id);
       const sesudah = (await API.semuaPengajuan()).map(D.normalisasi).find((x) => x.id === b.id);
       st.info = { jenis: 'ok', teks: sesudah
-        ? `✅ Pengiriman ID ${b.id} (${k.nama}) dibatalkan. Status sekarang: "${sesudah.status}".` +
+        ? `Pengiriman ID ${b.id} (${k.nama}) dibatalkan. Status sekarang: "${sesudah.status}".` +
           (sesudah.statusId === D.STATUS_DRAF ? ' Salinan ini sekarang bisa dihapus.' : '')
-        : `✅ Pengiriman ID ${b.id} (${k.nama}) dibatalkan. Baris tidak lagi muncul di daftar pengajuan.` };
+        : `Pengiriman ID ${b.id} (${k.nama}) dibatalkan. Baris tidak lagi muncul di daftar pengajuan.` };
     } catch (e) {
       console.error('[Asisten e-RDKK]', e);
       st.info = { jenis: 'galat', teks: e.message };
@@ -416,7 +416,7 @@
         h('div', { class: 'angka-besar abu' }, h('b', {}, fmtKg(r.total.petani)), h('span', {}, 'petani (baris)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, r.perKomoditas.map((k) => k.komoditas).join(', ') || '-'), h('span', {}, 'komoditas'))),
       r.perKomoditas.length > 1 && h('p', { class: 'diperbarui' }, r.perKomoditas.map((k) => `${k.komoditas} ${fmtLuas(k.luas)} ha`).join(' · ')),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Luas = luas lahan PER TAHUN, bukan per periode tanam (MT). '),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'Luas = luas lahan PER TAHUN, bukan per periode tanam (MT). '),
         'Lahan jagung 0,5 ha yang ditanam di MT1 dan MT2 dihitung 0,5 ha, bukan 1 ha. ',
         h('b', {}, 'Luas Total PT'), ' = jumlah luas semua periode tanam MT1+MT2+MT3 (contoh tadi = 1 ha), jadi Luas Total PT ÷ Luas/Tahun = berapa kali ditanam setahun. ',
         ''),
@@ -448,9 +448,9 @@
     const bt = item.filter((x) => x.aksi === 'batal'), hp = item.filter((x) => x.aksi === 'hapus');
     return [
       bt.length > 0 && h('button', { type: 'button', class: `batal ${ukuran}`, disabled: sibuk(), onclick: () => aksiMt(bt, 'batal') },
-        ukuran ? `↩ Batal ${bt.length}` : 'Batal'),
+        ukuran ? `Batal (${bt.length})` : 'Batal'),
       hp.length > 0 && h('button', { type: 'button', class: `hapus ${ukuran}`, disabled: sibuk(), onclick: () => aksiMt(hp, 'hapus') },
-        ukuran ? `🗑 Hapus ${hp.length}` : 'Hapus'),
+        ukuran ? `Hapus (${hp.length})` : 'Hapus'),
     ];
   }
 
@@ -475,10 +475,10 @@
         h('div', { class: 'angka-besar ' + (n.total ? 'merah' : 'hijau') }, h('b', {}, n.total), h('span', {}, 'pengajuan MT/PT salah')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.padi} / ${n.jagung} / ${n.kopi}`), h('span', {}, 'padi / jagung / kopi')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.batal} / ${n.hapus}`), h('span', {}, 'bisa Batal / Hapus'))),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Padi & jagung harus 2 MT setahun; kopi (tanaman tahunan) cukup 1 PT. '),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'Padi & jagung harus 2 MT setahun; kopi (tanaman tahunan) cukup 1 PT. '),
         'Yang tidak sesuai ditampilkan di sini. ', h('b', {}, 'Batal'), ' = tarik dari Korluh (status kembali "Belum dikirim") supaya bisa diperbaiki; ',
         h('b', {}, 'Hapus'), ' = hapus permanen pengajuan yang belum dikirim ke Korluh.'),
-      !item.length ? h('div', { class: 'aman' }, '✅ Semua pengajuan padi & jagung sudah 2 MT, dan kopi 1 PT.')
+      !item.length ? h('div', { class: 'aman' }, 'Semua pengajuan padi & jagung sudah 2 MT, dan kopi 1 PT.')
         : grup.map((d) => h('section', { class: 'grup-mt' },
           h('div', { class: 'grup-judul-mt' }, d.nama),
           h('ul', { class: 'daftar' }, d.poktan.map((pk) => {
@@ -492,7 +492,7 @@
                     h('div', { class: 'nama' }, pk.nama, h('span', { class: 'jumlah' }, `${pk.item.length}`)),
                     h('div', { class: 'meta' }, [nn.padi && `${nn.padi} padi`, nn.jagung && `${nn.jagung} jagung`, nn.kopi && `${nn.kopi} kopi`].filter(Boolean).join(' · ') +
                       ` · ${nn.batal} menunggu Korluh · ${nn.hapus} belum dikirim` + (nn.tanpaAksi ? ` · ${nn.tanpaAksi} di atas Korluh` : ''))),
-                  h('span', { class: 'panah', 'aria-hidden': 'true' }, buka ? '▾' : '▸')),
+                  h('span', { class: 'panah' + (buka ? ' buka' : ''), 'aria-hidden': 'true' })),
                 h('div', { class: 'aksi-poktan' }, tombolAksi(pk.item, 'kecil'))),
               buka && h('div', { class: 'rinci' }, h('table', {},
                 h('thead', {}, h('tr', {}, ['Nama', 'NIK', 'Masalah', 'Luas', 'Status', 'Aksi'].map((t) => h('th', {}, t)))),
@@ -509,12 +509,12 @@
     const bt = item.filter((x) => x.aksi === 'batal'), hp = item.filter((x) => x.aksi === 'hapus');
     return h('footer', { class: 'aksi' },
       st.menghapus && st.menghapus.n > 1 && h('button', { class: 'kedua penuh', type: 'button', disabled: st.henti,
-        onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : '⏸ Hentikan'),
+        onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : 'Hentikan'),
       !sibuk() && bt.length > 0 && h('button', { class: 'batal-semua', type: 'button', onclick: () => aksiMt(bt, 'batal') },
-        `↩ Batal semua yang tampil (${bt.length})`),
+        `Batal semua yang tampil (${bt.length})`),
       !sibuk() && hp.length > 0 && h('button', { class: 'hapus-semua setengah', type: 'button', onclick: () => aksiMt(hp, 'hapus') },
-        `🗑 Hapus semua yang tampil (${hp.length})`),
-      h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memproses…' : '↻ Baca ulang data'),
+        `Hapus semua yang tampil (${hp.length})`),
+      h('button', { class: 'utama', type: 'button', disabled: sibuk(), onclick: () => muat() }, sibuk() ? 'Memproses…' : 'Baca ulang data'),
       item.length ? h('button', { class: 'kedua', type: 'button', onclick: unduhMt }, 'Unduh Excel') : null,
       h('p', { class: 'aksi-ket' }, 'Batal/Hapus hanya terjadi setelah Anda menyetujui konfirmasi. Data dicek ulang sebelum setiap aksi. ' +
         'Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.'));
@@ -568,7 +568,7 @@
     const henti = dilewati ? ` Dihentikan, ${dilewati} belum diproses.` : '';
     st.info = gagal.length || dilewati
       ? { jenis: 'galat', teks: `${ok.length} pengajuan ${kerja}.${henti}${gagal.length ? ` Dilewati: ${gagal.slice(0, 10).join('; ')}${gagal.length > 10 ? ` … (+${gagal.length - 10})` : ''}` : ''}` }
-      : { jenis: 'ok', teks: `✅ ${ok.length} pengajuan ${kerja}. Data sudah dibaca ulang.` };
+      : { jenis: 'ok', teks: `${ok.length} pengajuan ${kerja}. Data sudah dibaca ulang.` };
     await muat(true);
   }
 
@@ -607,7 +607,7 @@
         h('td', { class: 'poktan' }, p.nama, p.kwt && h('span', { class: 'chip abu kecil' }, 'KWT'),
           p.dobelMaster && h('span', { class: 'chip kuning kecil', title: 'Nama poktan ini tercatat lebih dari sekali di master' }, 'dobel di master'),
           p.diluarMaster && h('span', { class: 'chip kuning kecil', title: 'Ada pengajuan, tapi nama poktan tidak ditemukan di master' }, 'tidak ada di master')),
-        h('td', {}, p.sudah ? h('span', { class: 'chip hijau' }, '✓ Sudah') : h('span', { class: 'chip merah' }, 'Belum')),
+        h('td', {}, p.sudah ? h('span', { class: 'chip hijau' }, 'Sudah') : h('span', { class: 'chip merah' }, 'Belum')),
         h('td', { class: 'komoditas-up' }, p.sudah ? U.teksKomoditas(p) : '—'),
         h('td', { class: 'n' }, p.pengajuan ? `${p.pengajuan} pengajuan` : '')));
     }
@@ -624,7 +624,7 @@
         h('div', { class: 'angka-besar ' + (t.belum ? 'merah' : 'hijau') }, h('b', {}, t.belum), h('span', {}, 'belum upload')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, ringkas.desa.filter((d) => d.belum === 0).length + ' / ' + ringkas.desa.length), h('span', {}, 'desa sudah lengkap'))),
       h('div', { class: 'bar' }, h('div', { class: 'bar-isi', style: `width:${persen}%` })),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'ℹ Sudah upload = punya minimal 1 pengajuan aktif '),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'Sudah upload = punya minimal 1 pengajuan aktif '),
         '(status apa pun kecuali ditolak/batal/Not Valid). Daftar kelompok dari menu Master Data → Kelompok Tani, dicocokkan lewat nama desa + nama poktan.'),
       !list.length ? h('p', { class: 'kosong' }, 'Tidak ada kelompok yang cocok dengan filter.')
         : h('div', { class: 'tabel-rekap' }, h('table', {},
