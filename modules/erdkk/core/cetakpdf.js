@@ -24,35 +24,55 @@
     return t || 'TANPA NAMA';
   }
 
-  function namaBerkas({ komoditas, poktan, kios, bagian = 1, totalBagian = 1 }) {
-    return `${bersih(komoditas)} - ${bersih(poktan)} - ${bersih(kios)}${totalBagian > 1 ? ` (bagian ${bagian})` : ''}.pdf`;
+  const nomor = (n, lebar = 2) => String(n).padStart(lebar, '0');
+
+  /** "03 MUKTI JAYA - JAGUNG - YOGI TANI.pdf" (nomor urut dalam satu desa supaya urutan cetak jelas). */
+  function namaBerkas({ no, lebar = 2, poktan, komoditas, kios, bagian = 1, totalBagian = 1 }) {
+    return `${nomor(no, lebar)} ${bersih(poktan)} - ${bersih(komoditas)} - ${bersih(kios)}${totalBagian > 1 ? ` (bagian ${bagian})` : ''}.pdf`;
   }
 
   /**
    * Daftar pekerjaan (poktan × komoditas × kios) per desa.
-   * desa: [{ kode, nama, kecamatan }] · poktan: Map kode → [{ id, nama }] · kios: Map kode → [{ id, nama }]
-   * Nama folder poktan yang kembar dalam satu desa diberi id supaya tidak tertimpa.
+   * desa: [{ kode, nama, kecamatan, no? }] · poktan: Map kode → [{ id, nama }] · kios: Map kode → [{ id, nama }]
+   * Folder: KECAMATAN/NN DESA (NN = no desa, urut abjad semua desa). Nama poktan kembar dalam satu desa diberi id.
    */
   function susunTugas(desa, poktan, kios, komoditas = KOMODITAS) {
     const tugas = [];
-    for (const d of desa) {
+    desa.forEach((d, i) => {
       const pk = poktan.get(d.kode) || [], ks = kios.get(d.kode) || [];
       const hitung = new Map();
       for (const p of pk) { const n = bersih(p.nama); hitung.set(n, (hitung.get(n) || 0) + 1); }
       for (const p of pk) {
-        const folderPoktan = hitung.get(bersih(p.nama)) > 1 ? `${bersih(p.nama)} (${p.id})` : bersih(p.nama);
-        for (const k of komoditas) {
+        const label = hitung.get(bersih(p.nama)) > 1 ? `${bersih(p.nama)} (${p.id})` : bersih(p.nama);
+        komoditas.forEach((k, urutKom) => {
           for (const ki of ks) {
             tugas.push({
-              desa: d, poktan: p, kios: ki, komoditas: k,
-              folder: `${bersih(d.kecamatan)}/${bersih(d.nama)}/${folderPoktan}`,
+              desa: d, poktan: p, kios: ki, komoditas: k, label, urutKom,
+              folder: `${bersih(d.kecamatan)}/${nomor(d.no || i + 1)} ${bersih(d.nama)}`,
               param: { desa: d.kode, poktan: String(p.id), subsectors: k.subsektor, commodities: k.nama, kios: String(ki.id) },
             });
           }
-        }
+        });
       }
-    }
+    });
     return tugas;
+  }
+
+  /** Beri nomor urut per desa: poktan A–Z → komoditas (padi, jagung, kopi) → kios → bagian. */
+  function beriNomor(item) {
+    const perFolder = new Map();
+    for (const x of item) {
+      if (!perFolder.has(x.t.folder)) perFolder.set(x.t.folder, []);
+      perFolder.get(x.t.folder).push(x);
+    }
+    for (const daftar of perFolder.values()) {
+      daftar.sort((a, b) => a.t.label.localeCompare(b.t.label, 'id') || a.t.urutKom - b.t.urutKom ||
+        String(a.t.kios.nama).localeCompare(String(b.t.kios.nama), 'id') || a.bagian - b.bagian);
+      const lebar = Math.max(2, String(daftar.length).length);
+      daftar.forEach((x, i) => {
+        x.jalur = `${x.t.folder}/${namaBerkas({ no: i + 1, lebar, poktan: x.t.label, komoditas: x.t.komoditas.nama, kios: x.t.kios.nama, bagian: x.bagian, totalBagian: x.totalBagian })}`;
+      });
+    }
   }
 
   const qs = (o) => new URLSearchParams(o).toString();
@@ -118,36 +138,36 @@
     const tugas = susunTugas(opsi.desa, poktan, kios, opsi.komoditas || KOMODITAS);
     Object.assign(p, { tahap: 'unduh', totalCek: tugas.length });
     lapor(p);
-    const berkas = [], log = [];
+    const item = [], gagalCek = [];
     await kolam(tugas, paralel, async (t) => {
       const dasar = { kecamatan: t.desa.kecamatan, desa: t.desa.nama, poktan: t.poktan.nama, komoditas: t.komoditas.nama, kios: t.kios.nama };
       try {
         const c = await A.ambilJson(`/api/cetak-count?${qs(t.param)}`, fetchFn);
         const baris = Number(c && c.total_rows) || 0, bagian = Number(c && c.total_parts) || 0;
         for (let b = 1; b <= bagian && !henti(); b++) {
-          const nama = namaBerkas({ komoditas: t.komoditas.nama, poktan: t.poktan.nama, kios: t.kios.nama, bagian: b, totalBagian: bagian });
-          const jalur = `${t.folder}/${nama}`;
+          const x = { t, dasar, bagian: b, totalBagian: bagian, baris, data: null, status: 'OK' };
           try {
-            const data = await ambilPdf({ ...t.param, part: b }, fetchFn);
-            berkas.push([jalur, data]);
-            p.pdf++; p.byte += data.length;
-            log.push({ ...dasar, bagian: b, baris, berkas: jalur, status: 'OK' });
+            x.data = await ambilPdf({ ...t.param, part: b }, fetchFn);
+            p.pdf++; p.byte += x.data.length;
           } catch (e) {
             if (e instanceof A.SesiHabis) throw e;
             p.gagal++;
-            log.push({ ...dasar, bagian: b, baris, berkas: jalur, status: `GAGAL: ${e.message}` });
+            x.status = `GAGAL: ${e.message}`;
           }
+          item.push(x);
         }
       } catch (e) {
         if (e instanceof A.SesiHabis) throw e;
         p.gagal++;
-        log.push({ ...dasar, bagian: '', baris: '', berkas: '', status: `GAGAL cek jumlah: ${e.message}` });
+        gagalCek.push({ ...dasar, bagian: '', baris: '', berkas: '', status: `GAGAL cek jumlah: ${e.message}` });
       }
       p.dicek++; lapor(p);
     }, henti);
 
-    berkas.sort((a, b) => a[0].localeCompare(b[0], 'id'));
-    log.sort((a, b) => String(a.berkas).localeCompare(String(b.berkas), 'id'));
+    beriNomor(item);
+    const berkas = item.filter((x) => x.data).map((x) => [x.jalur, x.data]).sort((a, b) => a[0].localeCompare(b[0], 'id'));
+    const log = [...item.map((x) => ({ ...x.dasar, bagian: x.bagian, baris: x.baris, berkas: x.jalur, status: x.status })), ...gagalCek]
+      .sort((a, b) => String(a.berkas).localeCompare(String(b.berkas), 'id'));
     p.tahap = 'selesai'; lapor(p);
     return { berkas, log, dihentikan: henti() };
   }

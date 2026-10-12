@@ -57,7 +57,7 @@
     }
     if (!daftar.length) daftar = desaDariDropdown();
     const unik = new Map(daftar.map((d) => [d.kode, d]));
-    daftarDesa = [...unik.values()].sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+    daftarDesa = [...unik.values()].sort((a, b) => a.nama.localeCompare(b.nama, 'id')).map((d, i) => ({ ...d, no: i + 1 }));
     st.pilih = new Set(daftarDesa.map((d) => d.kode));
     st.memuatDesa = false;
     render();
@@ -90,7 +90,7 @@
           h('p', { class: 'sub' }, `Asisten PPL · Padi, Jagung, Kopi${tahun ? ` · e-RDKK ${tahun}` : ''}`))),
       h('p', { class: 'ket' },
         'Mengunduh PDF Cetak Data untuk semua kelompok tani dan kios di desa yang dicentang, lalu disatukan dalam satu ZIP berisi folder ',
-        h('b', {}, 'Kecamatan / Desa / Poktan'), ' dengan nama berkas ', h('b', {}, 'KOMODITAS - POKTAN - KIOS.pdf'),
+        h('b', {}, 'Kecamatan / 01 Desa'), ' dengan nama berkas bernomor urut ', h('b', {}, '01 POKTAN - KOMODITAS - KIOS.pdf'),
         '. Kombinasi tanpa data dilewati. Hanya membaca data, tidak mengubah apa pun.'),
       h('div', { class: 'baris-aksi kecil' },
         h('span', { class: 'label' }, `Desa (${st.pilih.size}/${daftarDesa.length})`),
