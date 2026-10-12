@@ -102,9 +102,12 @@
         h('input', { type: 'checkbox', checked: st.pilih.has(d.kode), disabled: st.jalan,
           onchange: (e) => { e.target.checked ? st.pilih.add(d.kode) : st.pilih.delete(d.kode); render(); } }),
         d.nama))),
-      p && h('div', { class: 'progres' },
+      p && h('div', { class: 'progres' + (st.jalan ? ' jalan' : '') },
         h('div', { class: 'bar' }, h('i', { style: `width:${persen(p)}%` })),
-        h('p', {}, teksProgres(p))),
+        h('div', { class: 'status' },
+          st.jalan && h('span', { class: 'putar', 'aria-hidden': 'true' }),
+          h('p', {}, teksProgres(p)),
+          st.jalan && h('span', { class: 'waktu' }, teksWaktu()))),
       st.galat && h('p', { class: 'galat' }, st.galat),
       st.hasil && !st.jalan && h('p', { class: st.hasil.gagal ? 'peringatan' : 'ok' }, teksHasil()),
       st.rekap && !st.jalan && viewRekap(st.rekap),
@@ -129,6 +132,25 @@
         (r.diluarMaster ? ` ${r.diluarMaster} poktan punya RDKK tapi namanya tidak ditemukan di master (ditandai di CSV).` : '')));
   }
 
+  const durasi = (ms) => { const d = Math.floor(ms / 1000); return d < 60 ? `${d} dtk` : `${Math.floor(d / 60)} mnt ${d % 60} dtk`; };
+  function teksWaktu() {
+    const now = Date.now();
+    const diam = now - (st.terakhirMaju || now);
+    return diam >= 8000
+      ? `Menunggu jawaban server e-RDKK… ${durasi(diam)} · berjalan ${durasi(now - st.mulaiPada)}`
+      : `Berjalan ${durasi(now - st.mulaiPada)}`;
+  }
+  // detak 1 detik selama proses: jam berjalan & tanda "menunggu server" tetap bergerak walau progres diam
+  let detak = null;
+  function mulaiDetak() {
+    clearInterval(detak);
+    detak = setInterval(() => {
+      if (!st.jalan) { clearInterval(detak); return; }
+      const el = kartu.querySelector('.waktu');
+      if (el) el.textContent = teksWaktu();
+    }, 1000);
+  }
+
   function persen(p) {
     if (p.tahap === 'daftar') return p.desaTotal ? Math.round((p.desaSelesai / p.desaTotal) * 10) : 0;
     if (p.tahap === 'unduh') return 10 + (p.totalCek ? Math.round((p.dicek / p.totalCek) * 88) : 0);
@@ -148,12 +170,14 @@
 
   async function mulai() {
     const tahun = tahunAktif();
+    Object.assign(st, { mulaiPada: Date.now(), terakhirMaju: Date.now() });
+    mulaiDetak();
     Object.assign(st, { jalan: true, henti: false, galat: '', hasil: null, zip: null, rekap: null, p: { tahap: 'daftar', desaSelesai: 0, desaTotal: st.pilih.size } });
     render();
     try {
       const desa = daftarDesa.filter((d) => st.pilih.has(d.kode))
         .map((d) => ({ ...d, kecamatan: d.kecamatan || `KECAMATAN ${d.kode.slice(0, 6)}` }));
-      const r = await C.jalankan({ desa, onProgres: (p) => { st.p = { ...p }; render(); }, henti: () => st.henti });
+      const r = await C.jalankan({ desa, onProgres: (p) => { st.p = { ...p }; st.terakhirMaju = Date.now(); render(); }, henti: () => st.henti });
       st.p = { ...st.p, tahap: 'zip' }; render();
       await new Promise((ok) => setTimeout(ok, 30));
       let master = [];

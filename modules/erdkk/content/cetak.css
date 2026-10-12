@@ -25,7 +25,16 @@ button, input { font: inherit; color: inherit; }
 .progres { margin-top: 16px; }
 .bar { height: 6px; border-radius: 6px; background: #f1f1f2; overflow: hidden; }
 .bar i { display: block; height: 100%; background: #50cd89; transition: width .2s; }
-.progres p { margin: 8px 0 0; color: #4b5675; }
+.progres .status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.progres p { margin: 0; color: #4b5675; }
+.progres .waktu { color: #99a1b7; font-size: 12px; }
+.putar { width: 16px; height: 16px; flex: none; border-radius: 50%; border: 2px solid #e8fff3; border-top-color: #50cd89;
+  animation: putar .8s linear infinite; }
+@keyframes putar { to { transform: rotate(360deg); } }
+.progres.jalan .bar i { background-image: linear-gradient(45deg, rgba(255,255,255,.25) 25%, transparent 25%, transparent 50%,
+  rgba(255,255,255,.25) 50%, rgba(255,255,255,.25) 75%, transparent 75%); background-size: 16px 16px; animation: geser 1s linear infinite; }
+@keyframes geser { to { background-position: 16px 0; } }
+@media (prefers-reduced-motion: reduce) { .putar, .progres.jalan .bar i { animation-duration: 3s; } }
 .galat, .peringatan, .ok { margin: 12px 0 0; padding: 10px 14px; border-radius: 6px; }
 .galat { background: #fff5f8; color: #d9214e; border: 1px solid #f8c5d3; }
 .peringatan { background: #fff8dd; color: #7a5c00; border: 1px solid #f5e3a3; }
