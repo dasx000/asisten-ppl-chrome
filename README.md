@@ -166,7 +166,9 @@ Di menu **Cetak Data** muncul kartu **Unduh Semua PDF (ZIP)** di bawah tabel baw
 - Isi ZIP: `KECAMATAN/DESA/POKTAN/KOMODITAS - POKTAN - KIOS.pdf`; lebih dari 100 baris dipecah
   `… (bagian 1).pdf`, `… (bagian 2).pdf` mengikuti e-RDKK. Ada `DAFTAR ISI.csv` berisi status tiap berkas.
 - Tahun mengikuti tahun yang aktif di menu e-RDKK (mis. 2026). Hanya membaca; PDF tidak disimpan di browser.
-- Perkiraan: ±20 detik per desa.
+- Setelah selesai tampil rekap: berapa kelompok tani terdaftar (Master Data → Kelompok Tani) yang sudah punya
+  RDKK padi/jagung/kopi; daftar lengkap ada/belum di `REKAP POKTAN.csv` dalam ZIP.
+- Perkiraan: ±15 detik per desa.
 
 ## Untuk pengembang
 

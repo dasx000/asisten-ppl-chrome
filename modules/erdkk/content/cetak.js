@@ -107,12 +107,25 @@
         h('p', {}, teksProgres(p))),
       st.galat && h('p', { class: 'galat' }, st.galat),
       st.hasil && !st.jalan && h('p', { class: st.hasil.gagal ? 'peringatan' : 'ok' }, teksHasil()),
+      st.rekap && !st.jalan && viewRekap(st.rekap),
       h('div', { class: 'baris-aksi' },
         st.jalan
           ? h('button', { type: 'button', class: 'btn bahaya', disabled: st.henti, onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : 'Hentikan')
           : h('button', { type: 'button', class: 'btn utama', disabled: !st.pilih.size || st.memuatDesa, onclick: mulai }, 'Mulai unduh'),
         st.zip && !st.jalan && h('button', { type: 'button', class: 'btn', onclick: () => simpan() }, 'Unduh ZIP lagi')),
     ].filter((x) => x instanceof Node));
+  }
+
+  function viewRekap(r) {
+    const pct = r.terdaftar ? Math.round((r.ada / r.terdaftar) * 100) : 0;
+    return h('div', { class: 'rekap' },
+      h('div', { class: 'angka' },
+        h('div', {}, h('b', {}, `${r.ada} / ${r.terdaftar}`), h('span', {}, `kelompok tani sudah punya RDKK (${pct}%)`)),
+        h('div', {}, h('b', { class: r.belum ? 'merah' : '' }, r.belum), h('span', {}, 'belum ada RDKK padi/jagung/kopi')),
+        r.kwt.terdaftar ? h('div', {}, h('b', {}, `${r.kwt.ada} / ${r.kwt.terdaftar}`), h('span', {}, 'di antaranya KWT')) : null),
+      h('p', { class: 'sub' }, 'Total = kelompok tani di Master Data → Kelompok Tani untuk desa yang dicentang. ' +
+        'Daftar lengkap (ada/belum) ada di REKAP POKTAN.csv dalam ZIP.' +
+        (r.diluarMaster ? ` ${r.diluarMaster} poktan punya RDKK tapi namanya tidak ditemukan di master (ditandai di CSV).` : '')));
   }
 
   function persen(p) {
@@ -134,7 +147,7 @@
 
   async function mulai() {
     const tahun = tahunAktif();
-    Object.assign(st, { jalan: true, henti: false, galat: '', hasil: null, zip: null, p: { tahap: 'daftar', desaSelesai: 0, desaTotal: st.pilih.size } });
+    Object.assign(st, { jalan: true, henti: false, galat: '', hasil: null, zip: null, rekap: null, p: { tahap: 'daftar', desaSelesai: 0, desaTotal: st.pilih.size } });
     render();
     try {
       const desa = daftarDesa.filter((d) => st.pilih.has(d.kode))
@@ -142,7 +155,14 @@
       const r = await C.jalankan({ desa, onProgres: (p) => { st.p = { ...p }; render(); }, henti: () => st.henti });
       st.p = { ...st.p, tahap: 'zip' }; render();
       await new Promise((ok) => setTimeout(ok, 30));
+      let master = [];
+      try {
+        const m = await API.ambilJson('/api/poktan?draw=1&start=0&length=-1');
+        master = Array.isArray(m) ? m : (m && m.data) || [];
+      } catch (e) { if (e instanceof API.SesiHabis) throw e; }
+      st.rekap = master.length ? C.rekapPoktan(master, desa.map((d) => d.nama), r.log) : null;
       const isi = [...r.berkas, ['DAFTAR ISI.csv', C.daftarIsi(r.log)]];
+      if (st.rekap) isi.push(['REKAP POKTAN.csv', C.csvPoktan(st.rekap)]);
       const kecs = [...new Set(desa.map((d) => d.kecamatan))];
       st.zip = X.zip(isi);
       st.namaZip = `RDKK ${tahun || ''} - ${kecs.length === 1 ? C.bersih(kecs[0]) : 'Beberapa Kecamatan'} - PDF Padi Jagung Kopi.zip`.replace(/\s+/g, ' ');

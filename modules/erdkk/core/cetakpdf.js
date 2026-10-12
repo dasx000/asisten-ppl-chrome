@@ -159,7 +159,60 @@
     return '﻿' + [kol.map((k) => k.toUpperCase()).join(';'), ...log.map((r) => kol.map((k) => sel(r[k])).join(';'))].join('\r\n');
   }
 
-  const api = { KOMODITAS, bersih, namaBerkas, susunTugas, jalankan, daftarIsi, kolam };
+  const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const apaKwt = (nama) => /^\s*K\.?\s*W\.?\s*T\b|WANITA\s*TANI/i.test(String(nama || ''));
+
+  /**
+   * Rekap poktan: berapa kelompok tani terdaftar (Master Data → Kelompok Tani, desa terpilih) yang punya PDF
+   * RDKK padi/jagung/kopi. ID master berbeda dengan ID di pengajuan, jadi dicocokkan lewat nama desa + nama poktan.
+   * master: baris /api/poktan · namaDesa: nama desa terpilih · log: hasil jalankan()
+   * Return { daftar: [{ desa, nama, kwt, ada, komoditas: [], pdf, diluarMaster }], terdaftar, ada, belum, kwt: {terdaftar, ada}, diluarMaster }
+   */
+  function rekapPoktan(master, namaDesa, log) {
+    const desaPilih = new Set(namaDesa.map(norm));
+    const pdf = new Map();
+    for (const r of log) {
+      if (r.status !== 'OK') continue;
+      const k = `${norm(r.desa)}|${norm(r.poktan)}`;
+      if (!pdf.has(k)) pdf.set(k, { desa: r.desa, nama: r.poktan, komoditas: new Set(), pdf: 0 });
+      const x = pdf.get(k); x.komoditas.add(r.komoditas); x.pdf++;
+    }
+    const daftar = [], dipakai = new Set();
+    for (const m of master || []) {
+      if (!desaPilih.has(norm(m.nama_desa_erdkk))) continue;
+      const k = `${norm(m.nama_desa_erdkk)}|${norm(m.nama_poktan)}`;
+      if (dipakai.has(k)) continue; // nama kembar di master dihitung sekali
+      dipakai.add(k);
+      const x = pdf.get(k);
+      daftar.push({ desa: String(m.nama_desa_erdkk || '').trim().toUpperCase(), nama: String(m.nama_poktan || '').trim().replace(/\s+/g, ' ').toUpperCase(),
+        kwt: apaKwt(m.nama_poktan), ada: !!x, komoditas: x ? [...x.komoditas] : [], pdf: x ? x.pdf : 0, diluarMaster: false });
+    }
+    for (const [k, x] of pdf) {
+      if (dipakai.has(k)) continue;
+      daftar.push({ desa: String(x.desa).toUpperCase(), nama: String(x.nama).toUpperCase(), kwt: apaKwt(x.nama), ada: true,
+        komoditas: [...x.komoditas], pdf: x.pdf, diluarMaster: true });
+    }
+    daftar.sort((a, b) => a.desa.localeCompare(b.desa, 'id') || Number(b.ada) - Number(a.ada) || a.nama.localeCompare(b.nama, 'id'));
+    const terdaftar = daftar.filter((x) => !x.diluarMaster);
+    return {
+      daftar,
+      terdaftar: terdaftar.length,
+      ada: terdaftar.filter((x) => x.ada).length,
+      belum: terdaftar.filter((x) => !x.ada).length,
+      kwt: { terdaftar: terdaftar.filter((x) => x.kwt).length, ada: terdaftar.filter((x) => x.kwt && x.ada).length },
+      diluarMaster: daftar.filter((x) => x.diluarMaster).length,
+    };
+  }
+
+  /** REKAP POKTAN.csv */
+  function csvPoktan(rekap) {
+    const sel = (v) => { const s = String(v == null ? '' : v); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const baris = rekap.daftar.map((x) => [x.desa, x.nama, x.kwt ? 'KWT' : 'POKTAN', x.ada ? 'ADA' : 'BELUM ADA',
+      x.komoditas.join(', '), x.pdf, x.diluarMaster ? 'Tidak ditemukan di Master Data Kelompok Tani (nama berbeda?)' : ''].map(sel).join(';'));
+    return '\ufeff' + ['DESA;KELOMPOK TANI;JENIS;RDKK PADI/JAGUNG/KOPI;KOMODITAS;JUMLAH PDF;CATATAN', ...baris].join('\r\n');
+  }
+
+  const api = { rekapPoktan, csvPoktan, KOMODITAS, bersih, namaBerkas, susunTugas, jalankan, daftarIsi, kolam };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkCetakPdf = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
