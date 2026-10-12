@@ -28,7 +28,7 @@
     menghapus: null, // { teks, i, n } saat proses hapus berjalan
     henti: false, // diminta berhenti di tengah hapus massal
     info: null, // { jenis: 'ok'|'galat', teks } hasil aksi terakhir
-    tab: 'dup', // dup | rekap
+    tab: 'up', // up | mt | rekap | dup
     penuh: false, // panel dibesarkan selebar layar
     namaDesa: new Map(), // kode desa → nama
     fr: { desa: '', poktan: '', status: '', komoditas: '' }, // filter rekap ('' status = aktif)
@@ -139,7 +139,7 @@
           st.penuh ? 'Perkecil' : 'Perbesar'),
           h('button', { class: 'tutup', type: 'button', 'aria-label': 'Tutup', onclick: () => setBuka(false) }, '✕'))),
       h('nav', { class: 'tab-utama', role: 'tablist' },
-        [['dup', 'Cek Duplikasi'], ['mt', 'Cek PT'], ['rekap', 'Rekap Luas'], ['up', 'Status Upload']].map(([k, l]) => h('button', {
+        [['up', 'Status Upload'], ['mt', 'Cek PT'], ['rekap', 'Rekap Luas'], ['dup', 'Cek Duplikasi']].map(([k, l]) => h('button', {
           type: 'button', role: 'tab', 'aria-selected': String(st.tab === k), class: st.tab === k ? 'aktif' : '',
           disabled: !!st.menghapus, onclick: () => { st.tab = k; render(); },
         }, l))),
