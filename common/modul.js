@@ -8,8 +8,8 @@
   const DAFTAR = [
     {
       id: 'simluh',
-      nama: 'SIMLUH — Update dari Excel',
-      ket: 'Ubah & tambah anggota poktan dari file Cetak Excel, di halaman daftar anggota poktan.',
+      nama: 'SIMLUH — Update dari Excel & Dashboard Luas Lahan',
+      ket: 'Ubah & tambah anggota poktan dari file Cetak Excel, plus rekap luas lahan per komoditas di halaman Home.',
       situs: 'https://simluh.pertanian.go.id/',
     },
     {

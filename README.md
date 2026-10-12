@@ -58,6 +58,16 @@ supaya angkanya tidak rusak menjadi `1,8E+15` atau berakhiran `0000`.
 
 ---
 
+### Dashboard Home: Rekap Luas Lahan per Komoditas
+
+Di halaman **Home** SIMLUHTAN (Admin BPP) muncul kartu **Rekap Luas Lahan per Komoditas**. Klik **Muat rekap**
+(±20 detik) untuk membaca anggota semua kelompok tani.
+
+- Luas = jumlah Volume (ha) pada Komoditas yang Diusahakan 1–3 tiap anggota; petani dihitung sekali per komoditas.
+- Ternak (ekor) ditampilkan terpisah, tidak masuk luas.
+- Kartu total, grafik batang per komoditas, tabel per komoditas (petani, luas, rata-rata, %), rincian per desa; filter desa.
+- Hanya membaca; nama/NIK tidak disimpan, hanya angka rekap di memori.
+
 ## Modul e-Banper — Kuota Program
 
 Menampilkan kuota **semua kegiatan** bantuan di kabupaten Anda dalam satu daftar: **Rancangan Pusat**,
