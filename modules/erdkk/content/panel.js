@@ -93,6 +93,7 @@
     try {
       const mentah = await API.semuaPengajuan({ onProgres: (n, total) => { st.progres = { n, total }; render(); } });
       st.baris = mentah.map(D.normalisasi);
+      st.kurang = mentah.kurang || 0;
       st.waktu = new Date().toISOString();
       try { st.poktanMaster = await API.semuaPoktan(); } catch (e) { if (e instanceof API.SesiHabis) throw e; st.poktanMaster = []; }
       const desaBelum = [...new Set(st.baris.map((b) => b.desa))].filter((k) => k && !st.namaDesa.has(k));
@@ -184,7 +185,8 @@
           h('b', {}, n.lintas), h('span', {}, 'lintas status'))),
       h('p', { class: 'diperbarui' },
         `${r.dicek} pengajuan dicek, ${r.dikecualikan} dikecualikan (ditolak/batal/Not Valid). ` +
-        (waktu ? `Dibaca pukul ${waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}.` : '')),
+        (waktu ? `Dibaca pukul ${waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}.` : '') +
+        (st.kurang ? ` Perhatian: ${st.kurang} pengajuan belum terbaca dari server, klik Periksa ulang.` : '')),
       h('section', { class: 'filter' },
         h('div', { class: 'filter-baris' },
           h('select', { name: 'wilayah', onchange: (e) => ubahF('wilayah', e.target.value) },

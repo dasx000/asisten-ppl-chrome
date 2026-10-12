@@ -44,18 +44,51 @@
   }
 
   /** Semua baris pengajuan (semua status) yang bisa diakses akun, dibaca per 500 baris. */
+  /** Buang baris ber-id sama (urutan server tidak stabil, halaman bisa tumpang tindih). */
+  function unikPerId(data) {
+    const lihat = new Set();
+    return data.filter((x) => {
+      const id = x && x.id != null ? String(x.id) : null;
+      if (id == null) return true;
+      if (lihat.has(id)) return false;
+      lihat.add(id);
+      return true;
+    });
+  }
+
+  /**
+   * Semua pengajuan. Utama: satu permintaan length=-1 (tanpa halaman), karena urutan server tidak stabil
+   * untuk baris yang dibuat bersamaan: membaca per halaman bisa memunculkan baris yang sama dua kali
+   * (terlihat seperti duplikat) dan melewatkan baris lain. Cadangan: per halaman + buang id ganda.
+   * Hasil diberi properti `kurang` = recordsTotal − jumlah baris unik (0 bila lengkap).
+   */
   async function semuaPengajuan(opsi = {}) {
     const fetchFn = opsi.fetch;
     const lapor = opsi.onProgres || (() => {});
-    const hasil = [];
-    for (let start = 0; ; start += PER_HALAMAN) {
-      const j = await ambilJson(`/api/pengajuan?draw=1&start=${start}&length=${PER_HALAMAN}`, fetchFn);
+    let hasil = null, total = 0;
+    try {
+      const j = await ambilJson('/api/pengajuan?draw=1&start=0&length=-1', fetchFn);
       const data = Array.isArray(j) ? j : j.data || [];
-      hasil.push(...data);
-      const total = Number(j.recordsTotal || j.recordsFiltered || hasil.length);
-      lapor(hasil.length, total);
-      if (!data.length || data.length < PER_HALAMAN || hasil.length >= total) break;
+      total = Number(j.recordsTotal || j.recordsFiltered || data.length);
+      if (data.length >= total) hasil = unikPerId(data);
+    } catch (e) {
+      if (e instanceof SesiHabis) throw e;
     }
+    if (!hasil || hasil.length < total) {
+      const kumpul = [];
+      for (let start = 0; ; start += PER_HALAMAN) {
+        const j = await ambilJson(`/api/pengajuan?draw=1&start=${start}&length=${PER_HALAMAN}`, fetchFn);
+        const data = Array.isArray(j) ? j : j.data || [];
+        kumpul.push(...data);
+        total = Number(j.recordsTotal || j.recordsFiltered || kumpul.length);
+        lapor(kumpul.length, total);
+        if (!data.length || data.length < PER_HALAMAN || kumpul.length >= total) break;
+      }
+      const unik = unikPerId(kumpul);
+      hasil = !hasil || unik.length > hasil.length ? unik : hasil;
+    }
+    lapor(hasil.length, total || hasil.length);
+    hasil.kurang = Math.max(0, total - hasil.length);
     return hasil;
   }
 
@@ -154,7 +187,7 @@
   const batal = (id, opsi) => kirimAksi('/api/batal-pengajuan',
     { id: String(id), sub_district_code: '', kelompokTani: '' }, 'pembatalan', opsi);
 
-  const api = { ServerSibuk, SesiHabis, ambilJson, semuaPengajuan, semuaPoktan, namaDesa, desaDariJson, tokenHalaman, hapus, batal, PER_HALAMAN };
+  const api = { ServerSibuk, SesiHabis, ambilJson, unikPerId, semuaPengajuan, semuaPoktan, namaDesa, desaDariJson, tokenHalaman, hapus, batal, PER_HALAMAN };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkApi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

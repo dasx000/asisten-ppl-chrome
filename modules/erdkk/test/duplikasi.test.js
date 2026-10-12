@@ -84,18 +84,39 @@ test('laporan Excel: NIK sebagai teks, kelompok luput diberi tanda', () => {
   assert.ok(X.buat(L.susun({ dicek: 0, dikecualikan: 0 }, [])).length > 1000);
 });
 
-test('semuaPengajuan: baca per halaman sampai recordsTotal', async () => {
-  const total = 1203;
-  const panggil = [];
+test('semuaPengajuan: utama satu permintaan length=-1', async () => {
+  const total = 1203, panggil = [];
   const fetchTiruan = async (url) => {
-    const start = Number(/start=(\d+)/.exec(url)[1]), len = Number(/length=(\d+)/.exec(url)[1]);
-    panggil.push(start);
-    const data = Array.from({ length: Math.max(0, Math.min(len, total - start)) }, (_, i) => ({ id: start + i }));
+    panggil.push(/length=(-?\d+)/.exec(url)[1]);
+    const data = Array.from({ length: total }, (_, i) => ({ id: i }));
     return { status: 200, text: async () => JSON.stringify({ recordsTotal: total, data }) };
   };
   const rows = await A.semuaPengajuan({ fetch: fetchTiruan });
   assert.equal(rows.length, total);
-  assert.deepEqual(panggil, [0, 500, 1000]);
+  assert.equal(rows.kurang, 0);
+  assert.deepEqual(panggil, ['-1']);
+});
+
+test('semuaPengajuan: cadangan per halaman bila length=-1 ditolak, id ganda dibuang', async () => {
+  const total = 1203, panggil = [];
+  const fetchTiruan = async (url) => {
+    const start = Number(/start=(\d+)/.exec(url)[1]), len = Number(/length=(-?\d+)/.exec(url)[1]);
+    panggil.push(len);
+    if (len < 0) return { status: 200, text: async () => JSON.stringify({ recordsTotal: total, data: [] }) };
+    // urutan tidak stabil: halaman ke-2 mengulang baris terakhir halaman 1
+    const s = start ? start - 1 : 0;
+    const data = Array.from({ length: Math.max(0, Math.min(len, total - s)) }, (_, i) => ({ id: s + i }));
+    return { status: 200, text: async () => JSON.stringify({ recordsTotal: total, data }) };
+  };
+  const rows = await A.semuaPengajuan({ fetch: fetchTiruan });
+  assert.equal(new Set(rows.map((r) => r.id)).size, rows.length);
+  assert.deepEqual(panggil.slice(0, 2), [-1, 500]);
+});
+
+test('cari: baris ber-id sama tidak dianggap duplikat', () => {
+  const satu = baris('NURYAHYA', '1808000000000099', 2);
+  const { kelompok } = D.cari([satu, { ...satu }].map(D.normalisasi));
+  assert.equal(kelompok.length, 0);
 });
 
 test('aturan hapus: hanya draf, sisakan minimal satu, yang terkirim disisakan', () => {

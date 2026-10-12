@@ -64,7 +64,15 @@
    * (Identik berarti juga poktan & desa sama, jadi otomatis "per poktan/desa".)
    */
   function cari(baris) {
-    const aktif = baris.filter((b) => !b.dikecualikan && b.nik);
+    const idLihat = new Set();
+    // satu id = satu pengajuan: baris ber-id sama (terbaca dua kali) bukan duplikat
+    const aktif = baris.filter((b) => {
+      if (b.dikecualikan || !b.nik) return false;
+      if (b.id == null) return true;
+      if (idLihat.has(String(b.id))) return false;
+      idLihat.add(String(b.id));
+      return true;
+    });
     const peta = new Map();
     for (const b of aktif) {
       const k = b.sidik;
