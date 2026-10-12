@@ -156,6 +156,18 @@ beserta jumlah petani.
 
 ---
 
+### Unduh Semua PDF (halaman Cetak Data)
+
+Di menu **Cetak Data** muncul kartu **Unduh Semua PDF (ZIP)** di bawah tabel bawaan.
+
+- Centang desa (bawaan: semua desa), klik **Mulai unduh**.
+- Untuk setiap kelompok tani × kios × komoditas **padi, jagung, kopi**, ekstensi memakai PDF bawaan e-RDKK
+  (sama dengan tombol Cetak Data). Kombinasi tanpa data dilewati.
+- Isi ZIP: `KECAMATAN/DESA/POKTAN/KOMODITAS - POKTAN - KIOS.pdf`; lebih dari 100 baris dipecah
+  `… (bagian 1).pdf`, `… (bagian 2).pdf` mengikuti e-RDKK. Ada `DAFTAR ISI.csv` berisi status tiap berkas.
+- Tahun mengikuti tahun yang aktif di menu e-RDKK (mis. 2026). Hanya membaca; PDF tidak disimpan di browser.
+- Perkiraan: ±20 detik per desa.
+
 ## Untuk pengembang
 
 ### Struktur

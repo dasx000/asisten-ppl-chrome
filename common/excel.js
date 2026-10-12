@@ -187,7 +187,7 @@
     ]);
   }
 
-  const api = { buat, kolom, alamat, crc32 };
+  const api = { buat, kolom, alamat, crc32, zip };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.AsistenExcel = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

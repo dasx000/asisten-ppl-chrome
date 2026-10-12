@@ -1,0 +1,32 @@
+@charset "UTF-8";
+/* Kartu "Unduh Semua PDF" di halaman Cetak Data — tema e-RDKK (Metronic). */
+:host { all: initial; display: block; margin-top: 20px; font-family: Inter, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #071437; }
+*, *::before, *::after { box-sizing: border-box; }
+button, input { font: inherit; color: inherit; }
+.kartu { background: #fff; border: 1px solid #e1e3ea; border-radius: 12px; padding: 22px 26px; box-shadow: 0 3px 4px rgba(0, 0, 0, .03); }
+.kepala h3 { margin: 0; font-size: 15.6px; font-weight: 600; }
+.sub { margin: 2px 0 0; color: #99a1b7; font-size: 12px; }
+.ket { margin: 12px 0 14px; color: #4b5675; max-width: 900px; }
+.ket b { color: #071437; font-weight: 600; }
+.baris-aksi { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.baris-aksi.kecil { margin: 0 0 8px; }
+.label { font-weight: 600; color: #4b5675; margin-right: 6px; }
+.tautan { border: 0; background: none; padding: 0; color: #3e97ff; font-weight: 500; cursor: pointer; }
+.tautan:disabled { color: #99a1b7; cursor: not-allowed; }
+.desa { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 10px; }
+.desa label { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e1e3ea; border-radius: 6px; cursor: pointer; color: #4b5675; }
+.desa label.dipilih { border-color: #50cd89; background: #e8fff3; color: #071437; }
+.desa input { accent-color: #50cd89; margin: 0; }
+.btn { padding: 9px 18px; border-radius: 6px; border: 1px solid #dbdfe9; background: #fff; font-weight: 500; cursor: pointer; }
+.btn.utama { background: #50cd89; border-color: #50cd89; color: #fff; }
+.btn.utama:hover { background: #47be7d; }
+.btn.bahaya { background: #f1416c; border-color: #f1416c; color: #fff; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.progres { margin-top: 16px; }
+.bar { height: 6px; border-radius: 6px; background: #f1f1f2; overflow: hidden; }
+.bar i { display: block; height: 100%; background: #50cd89; transition: width .2s; }
+.progres p { margin: 8px 0 0; color: #4b5675; }
+.galat, .peringatan, .ok { margin: 12px 0 0; padding: 10px 14px; border-radius: 6px; }
+.galat { background: #fff5f8; color: #d9214e; border: 1px solid #f8c5d3; }
+.peringatan { background: #fff8dd; color: #7a5c00; border: 1px solid #f5e3a3; }
+.ok { background: #e8fff3; color: #1d7a47; border: 1px solid #b7ebcf; }
