@@ -143,10 +143,10 @@ data pengajuan: kelompok yang punya **minimal 1 pengajuan aktif** (bukan ditolak
 Tab **Rekap Luas** di panel yang sama menampilkan luas lahan yang diajukan **per kampung → kelompok tani → komoditas**,
 beserta jumlah petani.
 
-- **Luas = luas lahan per tahun**: dihitung sekali per petani per komoditas, PT1–PT3 tidak dijumlah
+- **Luas Lahan** = luas bidang lahan, dihitung sekali per petani per komoditas, PT1–PT3 tidak dijumlah
   (bila luas antar PT berbeda, diambil yang terbesar).
-- **Luas Total PT** = jumlah luas semua periode tanam (PT1+PT2+PT3), tampil berdampingan dengan Luas/Tahun. Luas Total PT ÷ Luas/Tahun
-  menunjukkan berapa kali lahan ditanam setahun (mis. padi yang hanya diisi PT1 akan sama dengan Luas/Tahun).
+- **Luas Tanam** = PT1 + PT2 + PT3, sama dengan kolom "Rencana Tanam" di lembar Cetak Data e-RDKK. Luas Tanam ÷ Luas Lahan
+  menunjukkan berapa kali lahan ditanam setahun (mis. padi yang hanya diisi PT1 akan sama dengan Luas Lahan).
 - Data dihitung apa adanya, termasuk salinan dobel bila ada.
 - Filter **Kelurahan/Desa**, **Kelompok Tani**, **Komoditas**, dan **Status** (bawaan: semua kecuali ditolak/batal/Not Valid).
   Pengajuan campuran (mis. padi PT1 + jagung PT2) hanya dihitung bagian komoditas yang dipilih.

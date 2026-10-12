@@ -128,7 +128,7 @@
         h('div', {},
           h('div', { class: 'judul' }, 'Asisten e-RDKK'),
           h('div', { class: 'sub' }, ({
-            rekap: 'Rekap luas lahan per kampung, poktan, komoditas',
+            rekap: 'Rekap luas lahan & luas tanam per kampung, poktan, komoditas',
             mt: 'Cek PT: padi & jagung 2 PT, kopi maks 1 PT',
             up: 'Status upload RDKK per kelompok tani',
             dup: 'Cek duplikasi: baris identik di semua status',
@@ -413,18 +413,17 @@
     return [
       sel3,
       h('section', { class: 'ringkas-atas' },
-        h('div', { class: 'angka-besar hijau' }, h('b', {}, fmtLuas(r.total.luas)), h('span', {}, 'ha luas lahan per tahun')),
-        h('div', { class: 'angka-besar abu' }, h('b', {}, fmtLuas(r.total.luasTanam)), h('span', {}, 'ha luas total PT (PT1+PT2+PT3)')),
+        h('div', { class: 'angka-besar hijau' }, h('b', {}, fmtLuas(r.total.luas)), h('span', {}, 'ha luas lahan')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, fmtLuas(r.total.luasTanam)), h('span', {}, 'ha luas tanam (PT1+PT2+PT3)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, fmtKg(r.total.petani)), h('span', {}, 'petani (baris)')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, r.perKomoditas.map((k) => k.komoditas).join(', ') || '-'), h('span', {}, 'komoditas'))),
       r.perKomoditas.length > 1 && h('p', { class: 'diperbarui' }, r.perKomoditas.map((k) => `${k.komoditas} ${fmtLuas(k.luas)} ha`).join(' · ')),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'Luas = luas lahan PER TAHUN, bukan per periode tanam (PT). '),
-        'Lahan jagung 0,5 ha yang ditanam di PT1 dan PT2 dihitung 0,5 ha, bukan 1 ha. ',
-        h('b', {}, 'Luas Total PT'), ' = jumlah luas semua periode tanam PT1+PT2+PT3 (contoh tadi = 1 ha), jadi Luas Total PT ÷ Luas/Tahun = berapa kali ditanam setahun. ',
-        ''),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'Luas Lahan'), ' = luas bidang lahan petani, dihitung sekali walau ditanam beberapa kali setahun. ',
+        h('b', {}, 'Luas Tanam'), ' = luas PT1 + PT2 + PT3 (sama dengan kolom "Rencana Tanam" di lembar Cetak Data). ',
+        'Contoh: lahan jagung 0,5 ha ditanam di PT1 dan PT2 → luas lahan 0,5 ha, luas tanam 1 ha. Luas Tanam ÷ Luas Lahan = berapa kali ditanam setahun.'),
       !r.desa.length ? h('p', { class: 'kosong' }, 'Tidak ada data untuk filter ini.')
         : h('div', { class: 'tabel-rekap' }, h('table', {},
-          h('thead', {}, h('tr', {}, ['Kampung / Poktan', 'Komoditas', 'Petani', 'Luas/Tahun (ha)', 'Luas Total PT (ha)']
+          h('thead', {}, h('tr', {}, ['Kampung / Poktan', 'Komoditas', 'Petani', 'Luas Lahan (ha)', 'Luas Tanam (ha)']
             .map((t, i) => h('th', { class: i > 1 ? 'n' : '' }, t)))),
           h('tbody', {}, body),
           h('tfoot', {}, h('tr', {}, h('td', { colspan: 2 }, 'TOTAL'), ...sel1(r.total))))),

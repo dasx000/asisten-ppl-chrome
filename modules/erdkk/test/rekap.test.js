@@ -83,7 +83,7 @@ test('luas tanam = jumlah PT1+PT2+PT3, berdampingan dengan luas per tahun', () =
   assert.equal(r.total.luas, 4.5);
   assert.equal(r.total.luasTanam, 6.25); // jagung 1 + 1, padi 1,75, kopi 2 (1 PT), campuran 0,25 + 0,25
   const teks = new TextDecoder().decode(X.buat(L.susunRekap({ filterTeks: 'x' }, r)));
-  assert.match(teks, /Luas Total PT \(PT1\+PT2\+PT3\)/);
+  assert.match(teks, /Luas Tanam PT1\+PT2\+PT3/);
 });
 
 test('namaDesa: utama /api/wilayah (semua desa), cadangan /api/areas-sub-district', async () => {
