@@ -93,3 +93,12 @@ test('rekapPoktan: dicocokkan nama desa + poktan dengan master, KWT dihitung, di
   assert.match(csv, /KOTAWAY;MUKTI JAYA;POKTAN;ADA;PADI, JAGUNG;2;/);
   assert.match(csv, /KOTAWAY;REJO TANI;POKTAN;BELUM ADA;;0;/);
 });
+
+test('fetchBatas: permintaan menggantung dibatalkan (tidak macet selamanya)', async () => {
+  const gantung = (url, init) => new Promise((_, tolak) => init.signal.addEventListener('abort', () => {
+    const e = new Error('aborted'); e.name = 'AbortError'; tolak(e);
+  }));
+  const t0 = Date.now();
+  await assert.rejects(ErdkkApi.fetchBatas(gantung, '/x', {}, 0.05), (e) => e.name === 'AbortError');
+  assert.ok(Date.now() - t0 < 1000);
+});

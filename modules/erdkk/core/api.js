@@ -15,19 +15,38 @@
     }
   }
   const tidur = (d) => new Promise((r) => setTimeout(r, d * 1000));
+  const BATAS_DETIK = 45;
+
+  /** fetch dengan batas waktu: permintaan yang menggantung dibatalkan (AbortError) supaya proses tidak macet. */
+  async function fetchBatas(fetchFn, url, init = {}, detik = BATAS_DETIK) {
+    if (typeof AbortController === 'undefined') return fetchFn(url, init);
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), detik * 1000);
+    try {
+      const r = await fetchFn(url, { ...init, signal: ac.signal });
+      // isi respons juga dibaca dalam batas waktu yang sama
+      const isi = typeof r.arrayBuffer === 'function' ? new Uint8Array(await r.arrayBuffer()) : new TextEncoder().encode(await r.text());
+      return { ok: r.ok, status: r.status, headers: r.headers,
+        arrayBuffer: async () => isi.buffer.slice(isi.byteOffset, isi.byteOffset + isi.byteLength),
+        text: async () => new TextDecoder().decode(isi) };
+    } finally {
+      clearTimeout(t);
+    }
+  }
+  const bukanJaringan = (e) => !(e instanceof ServerSibuk || e instanceof TypeError || (e && e.name === 'AbortError'));
 
   async function ambilJson(path, fetchFn = root.fetch && root.fetch.bind(root)) {
     for (let i = 0; ; i++) {
       let r;
       try {
-        r = await fetchFn(path, {
+        r = await fetchBatas(fetchFn, path, {
           credentials: 'include', cache: 'no-store',
           headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         });
-        if (r.status >= 500) throw new ServerSibuk(`server e-RDKK sedang bermasalah (HTTP ${r.status})`);
+        if (r.status >= 500 || r.status === 429) throw new ServerSibuk(`server e-RDKK sedang sibuk (HTTP ${r.status})`);
       } catch (e) {
-        if (!(e instanceof ServerSibuk || e instanceof TypeError)) throw e;
-        const pesan = e instanceof ServerSibuk ? e.message : 'koneksi ke e-RDKK terputus';
+        if (bukanJaringan(e)) throw e;
+        const pesan = e instanceof ServerSibuk ? e.message : e && e.name === 'AbortError' ? 'server e-RDKK tidak merespons' : 'koneksi ke e-RDKK terputus';
         if (i >= JEDA_ULANG.length) throw new ServerSibuk(`${pesan}, sudah dicoba ${i + 1}x. Coba lagi nanti.`);
         await tidur(JEDA_ULANG[i]);
         continue;
@@ -187,7 +206,7 @@
   const batal = (id, opsi) => kirimAksi('/api/batal-pengajuan',
     { id: String(id), sub_district_code: '', kelompokTani: '' }, 'pembatalan', opsi);
 
-  const api = { ServerSibuk, SesiHabis, ambilJson, unikPerId, semuaPengajuan, semuaPoktan, namaDesa, desaDariJson, tokenHalaman, hapus, batal, PER_HALAMAN };
+  const api = { ServerSibuk, SesiHabis, ambilJson, fetchBatas, unikPerId, semuaPengajuan, semuaPoktan, namaDesa, desaDariJson, tokenHalaman, hapus, batal, PER_HALAMAN };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkApi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

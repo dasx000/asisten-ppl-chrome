@@ -15,7 +15,7 @@
     { nama: 'JAGUNG', subsektor: 'TANAMAN PANGAN' },
     { nama: 'KOPI', subsektor: 'PERKEBUNAN' },
   ];
-  const JEDA_ULANG = [2, 5];
+  const JEDA_ULANG = [3, 10];
   const tidur = (d) => new Promise((r) => setTimeout(r, d * 1000));
 
   /** Nama aman untuk folder/berkas di Windows. */
@@ -81,7 +81,7 @@
     for (let i = 0; ; i++) {
       let r, data;
       try {
-        r = await fetchFn(`/api/cetak-pdf?${qs(param)}`, { credentials: 'include', cache: 'no-store' });
+        r = await root.ErdkkApi.fetchBatas(fetchFn, `/api/cetak-pdf?${qs(param)}`, { credentials: 'include', cache: 'no-store' }, 90);
         if (r.status === 401 || r.status === 419) throw new root.ErdkkApi.SesiHabis();
         data = new Uint8Array(await r.arrayBuffer());
         const pdf = data.length > 4 && data[0] === 0x25 && data[1] === 0x50 && data[2] === 0x44 && data[3] === 0x46; // %PDF
@@ -91,7 +91,7 @@
         throw new Error(r.ok ? 'bukan berkas PDF' : `HTTP ${r.status}`);
       } catch (e) {
         if (e instanceof root.ErdkkApi.SesiHabis) throw e;
-        if (i >= JEDA_ULANG.length) throw e;
+        if (i >= JEDA_ULANG.length) throw e && e.name === 'AbortError' ? new Error('server tidak merespons (lebih dari 90 detik)') : e;
         await tidur(JEDA_ULANG[i]);
       }
     }
