@@ -123,7 +123,8 @@
         h('div', {}, h('b', {}, `${r.ada} / ${r.terdaftar}`), h('span', {}, `kelompok tani sudah punya RDKK (${pct}%)`)),
         h('div', {}, h('b', { class: r.belum ? 'merah' : '' }, r.belum), h('span', {}, 'belum ada RDKK padi/jagung/kopi')),
         r.kwt.terdaftar ? h('div', {}, h('b', {}, `${r.kwt.ada} / ${r.kwt.terdaftar}`), h('span', {}, 'di antaranya KWT')) : null),
-      h('p', { class: 'sub' }, 'Total = kelompok tani di Master Data → Kelompok Tani untuk desa yang dicentang. ' +
+      h('p', { class: 'sub' }, `Total = kelompok tani di Master Data → Kelompok Tani untuk desa yang dicentang` +
+        (r.kembar && r.kembar.length ? ` (${r.mentah} baris di master; ${r.kembar.length} tercatat dua kali sehingga dihitung sekali: ${r.kembar.join(', ')})` : '') + '. ' +
         'Daftar lengkap (ada/belum) ada di REKAP POKTAN.csv dalam ZIP.' +
         (r.diluarMaster ? ` ${r.diluarMaster} poktan punya RDKK tapi namanya tidak ditemukan di master (ditandai di CSV).` : '')));
   }

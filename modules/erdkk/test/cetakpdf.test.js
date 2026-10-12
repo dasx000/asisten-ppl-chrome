@@ -71,7 +71,8 @@ test('jalankan: berhenti bila diminta', async () => {
 test('rekapPoktan: dicocokkan nama desa + poktan dengan master, KWT dihitung, di luar master ditandai', () => {
   const master = [
     { nama_desa_erdkk: 'KOTAWAY', nama_poktan: 'Mukti Jaya' }, { nama_desa_erdkk: 'KOTAWAY', nama_poktan: 'REJO TANI' },
-    { nama_desa_erdkk: 'KOTAWAY', nama_poktan: 'KWT MAWAR' }, { nama_desa_erdkk: 'SUKAJADI', nama_poktan: 'LAIN DESA' },
+    { nama_desa_erdkk: 'KOTAWAY', nama_poktan: 'KWT MAWAR' }, { nama_desa_erdkk: 'KOTAWAY', nama_poktan: 'KWT Mawar' },
+    { nama_desa_erdkk: 'SUKAJADI', nama_poktan: 'LAIN DESA' },
   ];
   const log = [
     { desa: 'KOTAWAY', poktan: 'MUKTI JAYA', komoditas: 'PADI', status: 'OK' },
@@ -86,6 +87,8 @@ test('rekapPoktan: dicocokkan nama desa + poktan dengan master, KWT dihitung, di
   assert.equal(r.belum, 1);
   assert.deepEqual(r.kwt, { terdaftar: 1, ada: 1 });
   assert.equal(r.diluarMaster, 1);
+  assert.equal(r.mentah, 4);
+  assert.deepEqual(r.kembar, ['KWT MAWAR (KOTAWAY)']);
   const csv = C.csvPoktan(r);
   assert.match(csv, /KOTAWAY;MUKTI JAYA;POKTAN;ADA;PADI, JAGUNG;2;/);
   assert.match(csv, /KOTAWAY;REJO TANI;POKTAN;BELUM ADA;;0;/);

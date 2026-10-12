@@ -197,11 +197,16 @@
       if (!pdf.has(k)) pdf.set(k, { desa: r.desa, nama: r.poktan, komoditas: new Set(), pdf: 0 });
       const x = pdf.get(k); x.komoditas.add(r.komoditas); x.pdf++;
     }
-    const daftar = [], dipakai = new Set();
+    const daftar = [], dipakai = new Set(), kembar = [];
+    let mentah = 0;
     for (const m of master || []) {
       if (!desaPilih.has(norm(m.nama_desa_erdkk))) continue;
+      mentah++;
       const k = `${norm(m.nama_desa_erdkk)}|${norm(m.nama_poktan)}`;
-      if (dipakai.has(k)) continue; // nama kembar di master dihitung sekali
+      if (dipakai.has(k)) { // nama kembar di master (beda huruf besar/kecil, beda id) dihitung sekali
+        kembar.push(`${String(m.nama_poktan || '').trim().toUpperCase()} (${String(m.nama_desa_erdkk || '').trim().toUpperCase()})`);
+        continue;
+      }
       dipakai.add(k);
       const x = pdf.get(k);
       daftar.push({ desa: String(m.nama_desa_erdkk || '').trim().toUpperCase(), nama: String(m.nama_poktan || '').trim().replace(/\s+/g, ' ').toUpperCase(),
@@ -221,6 +226,7 @@
       belum: terdaftar.filter((x) => !x.ada).length,
       kwt: { terdaftar: terdaftar.filter((x) => x.kwt).length, ada: terdaftar.filter((x) => x.kwt && x.ada).length },
       diluarMaster: daftar.filter((x) => x.diluarMaster).length,
+      mentah, kembar,
     };
   }
 
