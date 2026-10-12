@@ -54,7 +54,11 @@
         const teks = await r.text();
         if (r.status >= 500 || r.status === 429) throw new Error(`HTTP ${r.status}`);
         const doc = new DOMParser().parseFromString(teks, 'text/html');
-        if (doc.querySelector('input[type="password"]')) throw new SesiHabis('Sesi login SIMLUHTAN habis. Login ulang lalu klik Muat rekap.');
+        // Halaman login: diarahkan ke /login, atau tanpa menu samping & ada kolom kata sandi.
+        // (Setiap halaman SIMLUHTAN punya kolom "updatepassword" di menu akun, jadi itu bukan tanda sesi habis.)
+        const keLogin = /login|signin|auth/i.test(new URL(r.url || url, location.origin).pathname);
+        const formLogin = !doc.querySelector('a[href*="kelompoktanikec"]') && doc.querySelector('input[type="password"]:not([name="updatepassword"])');
+        if (keLogin || formLogin) throw new SesiHabis('Sesi login SIMLUHTAN habis. Login ulang lalu klik Muat rekap.');
         return doc;
       } catch (e) {
         if (e instanceof SesiHabis || i >= 2) throw e;
