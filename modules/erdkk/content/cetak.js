@@ -38,13 +38,32 @@
     return '';
   }
 
-  // Desa dari dropdown "Pilih Desa" bawaan ("1808022008 - KOTAWAY")
-  const daftarDesa = [...pilihDesa.options]
-    .map((o) => ({ kode: o.value, nama: o.text.replace(/^\s*\d+\s*-\s*/, '').trim() }))
-    .filter((d) => /^\d{10}$/.test(d.kode))
-    .sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  // Desa & kecamatan dari Master Data → Wilayah (dropdown "Pilih Desa" bawaan baru terisi belakangan);
+  // cadangan: isi dropdown bawaan ("1808022008 - KOTAWAY") saat itu.
+  let daftarDesa = [];
+  function desaDariDropdown() {
+    return [...pilihDesa.options]
+      .map((o) => ({ kode: o.value, nama: o.text.replace(/^\s*\d+\s*-\s*/, '').trim(), kecamatan: '' }))
+      .filter((d) => /^\d{10}$/.test(d.kode));
+  }
+  async function muatDesa() {
+    let daftar = [];
+    try {
+      const w = await API.ambilJson('/api/wilayah?draw=1&start=0&length=-1');
+      daftar = ((w && w.data) || []).filter((x) => /^\d{10}$/.test(String(x.sub_district_code || '')))
+        .map((x) => ({ kode: String(x.sub_district_code), nama: String(x.sub_district || '').trim(), kecamatan: String(x.district || '').trim() }));
+    } catch (e) {
+      if (e instanceof API.SesiHabis) st.galat = 'Sesi login e-RDKK habis. Login ulang lalu muat ulang halaman ini.';
+    }
+    if (!daftar.length) daftar = desaDariDropdown();
+    const unik = new Map(daftar.map((d) => [d.kode, d]));
+    daftarDesa = [...unik.values()].sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+    st.pilih = new Set(daftarDesa.map((d) => d.kode));
+    st.memuatDesa = false;
+    render();
+  }
 
-  const st = { pilih: new Set(daftarDesa.map((d) => d.kode)), jalan: false, henti: false, p: null, hasil: null, galat: '', zip: null, namaZip: '' };
+  const st = { pilih: new Set(), memuatDesa: true, jalan: false, henti: false, p: null, hasil: null, galat: '', zip: null, namaZip: '' };
 
   const host = h('div', { id: 'asisten-erdkk-cetak' });
   const akar = host.attachShadow({ mode: 'open' });
@@ -64,7 +83,7 @@
   function render() {
     const tahun = tahunAktif();
     const p = st.p;
-    kartu.replaceChildren(
+    kartu.replaceChildren(...[
       h('div', { class: 'kepala' },
         h('div', {},
           h('h3', {}, 'Unduh Semua PDF (ZIP)'),
@@ -77,6 +96,8 @@
         h('span', { class: 'label' }, `Desa (${st.pilih.size}/${daftarDesa.length})`),
         h('button', { type: 'button', class: 'tautan', disabled: st.jalan, onclick: () => { daftarDesa.forEach((d) => st.pilih.add(d.kode)); render(); } }, 'Pilih semua'),
         h('button', { type: 'button', class: 'tautan', disabled: st.jalan, onclick: () => { st.pilih.clear(); render(); } }, 'Kosongkan')),
+      st.memuatDesa ? h('p', { class: 'sub' }, 'Memuat daftar desa…') :
+      !daftarDesa.length ? h('p', { class: 'galat' }, 'Daftar desa tidak terbaca. Muat ulang halaman Cetak Data.') :
       h('div', { class: 'desa' }, daftarDesa.map((d) => h('label', { class: st.pilih.has(d.kode) ? 'dipilih' : '' },
         h('input', { type: 'checkbox', checked: st.pilih.has(d.kode), disabled: st.jalan,
           onchange: (e) => { e.target.checked ? st.pilih.add(d.kode) : st.pilih.delete(d.kode); render(); } }),
@@ -89,8 +110,9 @@
       h('div', { class: 'baris-aksi' },
         st.jalan
           ? h('button', { type: 'button', class: 'btn bahaya', disabled: st.henti, onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : 'Hentikan')
-          : h('button', { type: 'button', class: 'btn utama', disabled: !st.pilih.size, onclick: mulai }, 'Mulai unduh'),
-        st.zip && !st.jalan && h('button', { type: 'button', class: 'btn', onclick: () => simpan() }, 'Unduh ZIP lagi')));
+          : h('button', { type: 'button', class: 'btn utama', disabled: !st.pilih.size || st.memuatDesa, onclick: mulai }, 'Mulai unduh'),
+        st.zip && !st.jalan && h('button', { type: 'button', class: 'btn', onclick: () => simpan() }, 'Unduh ZIP lagi')),
+    ].filter((x) => x instanceof Node));
   }
 
   function persen(p) {
@@ -115,14 +137,8 @@
     Object.assign(st, { jalan: true, henti: false, galat: '', hasil: null, zip: null, p: { tahap: 'daftar', desaSelesai: 0, desaTotal: st.pilih.size } });
     render();
     try {
-      // nama kecamatan dari Master Data → Wilayah
-      const kec = new Map();
-      try {
-        const w = await API.ambilJson('/api/wilayah?draw=1&start=0&length=-1');
-        for (const x of (w && w.data) || []) if (x.sub_district_code) kec.set(String(x.sub_district_code), x.district || '');
-      } catch (e) { if (e instanceof API.SesiHabis) throw e; }
       const desa = daftarDesa.filter((d) => st.pilih.has(d.kode))
-        .map((d) => ({ ...d, kecamatan: kec.get(d.kode) || `KECAMATAN ${d.kode.slice(0, 6)}` }));
+        .map((d) => ({ ...d, kecamatan: d.kecamatan || `KECAMATAN ${d.kode.slice(0, 6)}` }));
       const r = await C.jalankan({ desa, onProgres: (p) => { st.p = { ...p }; render(); }, henti: () => st.henti });
       st.p = { ...st.p, tahap: 'zip' }; render();
       await new Promise((ok) => setTimeout(ok, 30));
@@ -152,4 +168,5 @@
   }
 
   render();
+  muatDesa();
 })();

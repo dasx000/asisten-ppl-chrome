@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Asisten PPL",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Alat bantu tidak resmi untuk tugas penyuluh di berbagai aplikasi. Modul: SIMLUH (update anggota poktan dari Excel), e-Banper (kuota program), e-RDKK (cek duplikasi, cek PT, rekap luas lahan, status upload poktan, unduh semua PDF cetak).",
   "icons": {
     "16": "icons/ikon16.png",
