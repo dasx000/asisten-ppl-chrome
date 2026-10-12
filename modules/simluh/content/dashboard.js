@@ -37,11 +37,23 @@
   akar.append(h('link', { rel: 'stylesheet', href: chrome.runtime.getURL('modules/simluh/content/dashboard.css') }));
   const kartu = h('section', { class: 'kartu' });
   akar.append(kartu);
+  // Tepat di bawah tulisan "Selamat Datang". Panel bawaan punya badan kosong setinggi ±300px; badan kosong itu
+  // disembunyikan supaya dashboard tidak terdorong ke bawah (hanya bila benar-benar kosong).
   const sambutan = [...document.querySelectorAll('.panel.panel-primary, .panel')].find((p) => /Selamat Datang/i.test(p.textContent));
-  if (sambutan) sambutan.after(host);
+  const judulSambutan = sambutan && sambutan.querySelector('.panel-heading');
+  const badanKosong = sambutan && [...sambutan.querySelectorAll(':scope > .panel-body')]
+    .filter((b) => !b.textContent.trim() && !b.querySelector('img, canvas, svg, iframe, table, input, button'));
+  if (judulSambutan) {
+    judulSambutan.after(host);
+    host.style.marginTop = '16px';
+    (badanKosong || []).forEach((b) => { b.style.display = 'none'; });
+  } else if (sambutan) sambutan.after(host);
   else (document.querySelector('main .container-fluid') || document.querySelector('main') || document.body).prepend(host);
 
-  window.Asisten.pantau('simluh', (nyala) => { host.style.display = nyala ? '' : 'none'; });
+  window.Asisten.pantau('simluh', (nyala) => {
+    host.style.display = nyala ? '' : 'none';
+    if (judulSambutan) (badanKosong || []).forEach((b) => { b.style.display = nyala ? 'none' : ''; });
+  });
 
   // ─── Baca data ─────────────────────────────────────────────────────────────
   class SesiHabis extends Error {}

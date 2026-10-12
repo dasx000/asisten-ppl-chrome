@@ -1,6 +1,6 @@
 {
   "name": "asisten-ppl",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "description": "Ekstensi Chrome/Edge Asisten PPL (multi-modul)",
   "scripts": {
