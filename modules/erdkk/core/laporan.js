@@ -187,7 +187,7 @@
   }
 
   // ─── Cek PT padi/jagung ────────────────────────────────────────────────────
-  /** info: { waktu, tahun, filterTeks } · grup: hasil ErdkkCekMt.kelompokkan · teksMasalah: fungsi */
+  /** info: { waktu, tahun, filterTeks, aturanTeks } · grup: hasil ErdkkCekMt.kelompokkan · teksMasalah: fungsi */
   function susunCekMt(info, grup, teksMasalah) {
     const K = [['No', 5], ['Desa', 14], ['Kelompok Tani', 20], ['Nama Petani', 24], ['NIK', 19], ['Masalah PT', 28],
       ['Luas (ha)', 9], ['Status', 26], ['Aksi', 10], ['ID Pengajuan', 12]];
@@ -197,7 +197,7 @@
     const semua = grup.flatMap((d) => d.poktan.flatMap((p) => p.item));
     const rows = [
       judul('CEK PT e-RDKK', { bold: true, size: 15, color: W.hijauTua }),
-      judul(`Tahun ${info.tahun || ''} · padi & jagung harus 2 PT; kopi (tahunan) maks 1 PT`, { bold: true }),
+      judul(`Tahun ${info.tahun || ''} · aturan PT: ${info.aturanTeks || '-'}`, { bold: true }),
       judul(info.filterTeks || 'Semua data', { italic: true, color: W.abu }),
       judul(`${semua.length} pengajuan · diambil ${waktu(info.waktu)}`, { italic: true, color: W.abu }),
       kosong(),

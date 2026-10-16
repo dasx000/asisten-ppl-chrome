@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Asisten PPL",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "description": "Alat bantu tidak resmi untuk tugas penyuluh di berbagai aplikasi. Modul: SIMLUH (update anggota poktan dari Excel, download Cetak Excel anggota per desa), e-Banper (kuota program), e-RDKK (cek duplikasi, cek PT, rekap luas lahan, status upload poktan, unduh semua PDF cetak).",
   "icons": {
     "16": "icons/ikon16.png",
@@ -77,7 +77,10 @@
     },
     {
       "matches": [
-        "https://erdkk25.pertanian.go.id/*"
+        "https://*.pertanian.go.id/*"
+      ],
+      "include_globs": [
+        "https://erdkk*.pertanian.go.id/*"
       ],
       "js": [
         "common/modul.js",
@@ -120,7 +123,7 @@
         "modules/erdkk/content/cetak.css"
       ],
       "matches": [
-        "https://erdkk25.pertanian.go.id/*"
+        "https://*.pertanian.go.id/*"
       ]
     }
   ]

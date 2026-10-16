@@ -21,7 +21,7 @@
     {
       id: 'erdkk',
       nama: 'e-RDKK — Status Upload, Cek PT, Rekap Luas & Duplikasi',
-      ket: 'Cari data dobel di semua status, padi/jagung yang PT-nya bukan 2 dan kopi lebih dari 1 PT (batal/hapus massal), rekap luas lahan, dan poktan yang belum upload.',
+      ket: 'Cari data dobel di semua status, pengajuan yang jumlah PT-nya beda dari mayoritas daerah Anda (batal/hapus massal), rekap luas lahan, dan poktan yang belum upload.',
       situs: 'https://erdkk25.pertanian.go.id/pengajuan',
     },
   ];

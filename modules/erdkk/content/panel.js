@@ -34,10 +34,13 @@
     fr: { desa: '', poktan: '', status: '', komoditas: '' }, // filter rekap ('' status = aktif)
     fm: { desa: '', poktan: '', status: '', komoditas: '' }, // filter Cek PT
     terbukaMt: null, // poktan yang rinciannya dibuka di Cek PT
+    ptManual: {}, // { KOMODITAS: pt } angka PT yang diubah manual (chrome.storage.sync), selebihnya dari analisis
     poktanMaster: [], // master Kelompok Tani (/api/poktan)
     fu: { desa: '', upload: '', jenis: 'poktan', cari: '' }, // filter Status Upload
   };
   const sibuk = () => st.tahap === 'memuat' || !!st.menghapus;
+  const KUNCI_PT = 'erdkk.ptManual';
+  chrome.storage.sync.get(KUNCI_PT).then((v) => { st.ptManual = (v && v[KUNCI_PT]) || {}; if (st.buka) render(); }).catch(() => {});
 
   function h(tag, props, ...anak) {
     const el = document.createElement(tag);
@@ -431,8 +434,19 @@
     ];
   }
 
-  // ─── Cek PT padi & jagung ──────────────────────────────────────────────────
-  const itemMt = () => M.cari(st.baris, st.fm);
+  // ─── Cek PT per komoditas (jumlah PT dari mayoritas isian) ─────────────────
+  const aturanMt = () => M.aturanDari(M.analisis(st.baris), st.ptManual);
+  const itemMt = () => M.cari(st.baris, aturanMt(), st.fm);
+
+  /** Simpan angka PT manual; sama dengan hasil analisis = kembali otomatis. */
+  function setPt(a, pt) {
+    const m = { ...st.ptManual };
+    if (pt == null || Number(pt) === a.pt) delete m[a.komoditas]; else m[a.komoditas] = Number(pt);
+    st.ptManual = m;
+    st.terbukaMt = null;
+    chrome.storage.sync.set({ [KUNCI_PT]: m }).catch(() => {});
+    render();
+  }
 
   function teksFilterMt() {
     const p = R.pilihan(st.baris, st.namaDesa, st.fm.desa);
@@ -440,7 +454,7 @@
     return [
       st.fm.desa ? `Desa ${nama(p.desa, st.fm.desa)}` : 'Semua desa',
       st.fm.poktan ? `Poktan ${nama(p.poktan, st.fm.poktan)}` : 'semua poktan',
-      st.fm.komoditas || 'padi, jagung & kopi',
+      st.fm.komoditas || 'semua komoditas',
       st.fm.status === 'semua' ? 'semua status' : st.fm.status ? `status "${nama(p.status, st.fm.status)}"` : 'status aktif',
     ].join(' · ');
   }
@@ -458,8 +472,12 @@
   function viewMt() {
     const p = R.pilihan(st.baris, st.namaDesa, st.fm.desa);
     if (st.fm.poktan && !p.poktan.some((x) => x.id === st.fm.poktan)) st.fm.poktan = '';
+    const hasil = M.analisis(st.baris);
+    const aturan = M.aturanDari(hasil, st.ptManual);
+    if (st.fm.komoditas && !aturan[st.fm.komoditas]) st.fm.komoditas = '';
     const item = itemMt();
     const n = M.hitung(item);
+    const salahPer = M.hitung(M.cari(st.baris, aturan, { ...st.fm, komoditas: '' })).per;
     const grup = M.kelompokkan(item, st.namaDesa);
     const ubah = (k, v) => { st.fm[k] = v; if (k === 'desa') st.fm.poktan = ''; st.terbukaMt = null; render(); };
     const sel = (name, nilai, opsi, label, awal) => h('label', { class: 'pilih' }, h('span', {}, label),
@@ -467,19 +485,19 @@
         awal.map(([v, l]) => h('option', { value: v, selected: nilai === v }, l)),
         opsi.map((o) => h('option', { value: String(o.id), selected: nilai === String(o.id) }, o.nama))));
     return [
-      h('section', { class: 'filter-rekap' },
+      h('section', { class: 'filter-rekap tiga' },
         sel('desa', st.fm.desa, p.desa, 'Kelurahan/Desa', [['', 'Semua desa']]),
         sel('poktan', st.fm.poktan, p.poktan, 'Kelompok Tani', [['', 'Semua poktan']]),
-        sel('komoditas', st.fm.komoditas, [], 'Komoditas', [['', 'Padi, Jagung & Kopi'], ['PADI', 'PADI'], ['JAGUNG', 'JAGUNG'], ['KOPI', 'KOPI']]),
         sel('status', st.fm.status, p.status, 'Status', [['', 'Semua (kecuali ditolak/batal/Not Valid)'], ['semua', 'Semua status']])),
       h('section', { class: 'ringkas-atas' },
         h('div', { class: 'angka-besar ' + (n.total ? 'merah' : 'hijau') }, h('b', {}, n.total), h('span', {}, 'pengajuan PT salah')),
-        h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.padi} / ${n.jagung} / ${n.kopi}`), h('span', {}, 'padi / jagung / kopi')),
+        h('div', { class: 'angka-besar abu' }, h('b', {}, hasil.length), h('span', {}, 'komoditas dicek')),
         h('div', { class: 'angka-besar abu' }, h('b', {}, `${n.batal} / ${n.hapus}`), h('span', {}, 'bisa Batal / Hapus'))),
-      h('div', { class: 'catatan-luas' }, h('b', {}, 'Padi & jagung harus 2 PT setahun; kopi (tanaman tahunan) cukup 1 PT. '),
-        'Yang tidak sesuai ditampilkan di sini. ', h('b', {}, 'Batal'), ' = tarik dari Korluh (status kembali "Belum dikirim") supaya bisa diperbaiki; ',
+      viewKomoditasMt(hasil, aturan, salahPer),
+      h('div', { class: 'catatan-luas' }, h('b', {}, 'Jumlah PT tiap komoditas diambil dari isian terbanyak di data pengajuan aktif; '),
+        'ubah angka PT di tombol komoditas bila daerah Anda berbeda. Yang tidak sesuai ditampilkan di sini. ', h('b', {}, 'Batal'), ' = tarik dari Korluh (status kembali "Belum dikirim") supaya bisa diperbaiki; ',
         h('b', {}, 'Hapus'), ' = hapus permanen pengajuan yang belum dikirim ke Korluh.'),
-      !item.length ? h('div', { class: 'aman' }, 'Semua pengajuan padi & jagung sudah 2 PT, dan kopi 1 PT.')
+      !item.length ? h('div', { class: 'aman' }, hasil.length ? 'Semua pengajuan sudah sesuai jumlah PT komoditasnya.' : 'Belum ada pengajuan aktif.')
         : grup.map((d) => h('section', { class: 'grup-mt' },
           h('div', { class: 'grup-judul-mt' }, d.nama),
           h('ul', { class: 'daftar' }, d.poktan.map((pk) => {
@@ -491,7 +509,7 @@
                 h('button', { type: 'button', class: 'kartu-kepala', 'aria-expanded': String(buka), onclick: () => { st.terbukaMt = buka ? null : kunci; render(); } },
                   h('div', { class: 'kiri' },
                     h('div', { class: 'nama' }, pk.nama, h('span', { class: 'jumlah' }, `${pk.item.length}`)),
-                    h('div', { class: 'meta' }, [nn.padi && `${nn.padi} padi`, nn.jagung && `${nn.jagung} jagung`, nn.kopi && `${nn.kopi} kopi`].filter(Boolean).join(' · ') +
+                    h('div', { class: 'meta' }, Object.entries(nn.per).map(([k, c]) => `${c} ${k.toLowerCase()}`).join(' · ') +
                       ` · ${nn.batal} menunggu Korluh · ${nn.hapus} belum dikirim` + (nn.tanpaAksi ? ` · ${nn.tanpaAksi} di atas Korluh` : ''))),
                   h('span', { class: 'panah' + (buka ? ' buka' : ''), 'aria-hidden': 'true' })),
                 h('div', { class: 'aksi-poktan' }, tombolAksi(pk.item, 'kecil'))),
@@ -503,6 +521,29 @@
                   h('td', {}, x.aksi ? tombolAksi([x], '') : h('span', { class: 'tetap' }, '—'))))))));
           })))),
     ];
+  }
+
+  // Tombol per komoditas (hanya yang ada di data): klik = saring, angka PT bisa diubah manual
+  function viewKomoditasMt(hasil, aturan, salahPer) {
+    if (!hasil.length) return null;
+    const pilih = (k) => { st.fm.komoditas = st.fm.komoditas === k ? '' : k; st.terbukaMt = null; render(); };
+    return h('section', { class: 'kom-pt', 'aria-label': 'Komoditas dan jumlah PT' },
+      h('button', { type: 'button', class: 'kom-semua' + (!st.fm.komoditas ? ' aktif' : ''), onclick: () => pilih('') }, 'Semua'),
+      hasil.map((a) => {
+        const at = aturan[a.komoditas];
+        const salah = salahPer[a.komoditas] || 0;
+        const tanda = [at.manual ? 'manual' : a.ragu && '⚠ perlu dicek', a.sedikit && 'data sedikit'].filter(Boolean).join(' · ');
+        return h('div', { class: 'kom' + (st.fm.komoditas === a.komoditas ? ' aktif' : '') + (salah ? ' ada-salah' : '') + (a.ragu && !at.manual ? ' ragu' : '') },
+          h('button', { type: 'button', class: 'kom-nama', onclick: () => pilih(a.komoditas), 'aria-pressed': String(st.fm.komoditas === a.komoditas),
+            title: `${a.total} pengajuan: ${[1, 2, 3].map((i) => `${a.sebaran[i] || 0} isi ${i} PT`).join(', ')}` },
+            h('b', {}, a.komoditas), h('span', { class: 'kom-salah' }, salah ? `${salah} salah` : 'sesuai')),
+          h('label', { class: 'kom-pt-isi' }, 'PT',
+            h('select', { 'aria-label': `Jumlah PT ${a.komoditas}`, disabled: sibuk(), onchange: (e) => setPt(a, e.target.value) },
+              [1, 2, 3].map((i) => h('option', { value: String(i), selected: at.pt === i }, String(i))))),
+          h('span', { class: 'kom-info' }, `${a.persen}% isi ${a.pt} PT dari ${a.total}`),
+          tanda && h('span', { class: 'kom-tanda' }, tanda),
+          at.manual && h('button', { type: 'button', class: 'tautan kom-reset', onclick: () => setPt(a, null), title: `Kembali ke hasil analisis (${a.pt} PT)` }, '↺ otomatis'));
+      }));
   }
 
   function viewAksiMt() {
@@ -543,13 +584,14 @@
     render();
     const ok = [], gagal = [];
     let dilewati = 0;
+    const aturan = aturanMt(); // aturan saat tombol diklik, dipakai untuk cek ulang
     try {
       const terbaru = (await API.semuaPengajuan()).map(D.normalisasi);
       for (const [i, x] of item.entries()) {
         if (st.henti) { dilewati = item.length - i; break; }
         st.menghapus = { teks: `${kata} ${i + 1} dari ${item.length}: ${x.b.nama} (ID ${x.b.id})…`, i, n: item.length };
         render();
-        const alasan = M.cekSebelumAksi(terbaru, x.b, jenis);
+        const alasan = M.cekSebelumAksi(terbaru, x.b, jenis, aturan);
         if (alasan) { gagal.push(`${x.b.nama}: ${alasan}`); continue; }
         try {
           await (jenis === 'batal' ? API.batal(x.b.id) : API.hapus(x.b.id));
@@ -575,7 +617,7 @@
 
   function unduhMt() {
     const grup = M.kelompokkan(itemMt(), st.namaDesa);
-    const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterMt() };
+    const info = { waktu: st.waktu, tahun: st.baris[0] && st.baris[0].tahun, filterTeks: teksFilterMt(), aturanTeks: M.teksAturan(aturanMt()) };
     unduhFile(window.AsistenExcel.buat(L.susunCekMt(info, grup, M.teksMasalah)), 'Cek PT e-RDKK');
   }
 

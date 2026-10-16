@@ -34,6 +34,38 @@ test('pilihKomoditas: subsektor otomatis, urutan baku, tanpa peternakan; bawaan 
   assert.deepEqual(t.map((x) => x.param.subsectors + '|' + x.param.commodities), ['HORTIKULTURA|BAWANG MERAH']);
 });
 
+test('daftarKomoditas: dari dropdown, subsektor dikenal dipetakan, komoditas baru di belakang dengan calon subsektor', () => {
+  const dd = ['', '', 'PADI', 'JAGUNG', 'KEDELAI', 'TEBU RAKYAT', 'KOPI', 'KAKAO', 'CABAI', 'BAWANG MERAH', 'BAWANG PUTIH', 'UBI KAYU'];
+  assert.deepEqual(C.daftarKomoditas(dd).map((k) => k.nama), C.SEMUA_KOMODITAS.map((k) => k.nama));
+  assert.equal(C.daftarKomoditas([]), C.SEMUA_KOMODITAS);
+  const d = C.daftarKomoditas(['PADI', ' kentang ', 'KOPI'], ['', 'TANAMAN PANGAN', 'HORTIKULTURA']);
+  assert.deepEqual(d.map((k) => [k.nama, k.subsektor]), [['PADI', 'TANAMAN PANGAN'], ['KOPI', 'PERKEBUNAN'], ['KENTANG', '']]);
+  assert.deepEqual(d[2].calon, ['TANAMAN PANGAN', 'HORTIKULTURA']);
+  assert.deepEqual(C.pilihKomoditas(['kentang', 'PADI'], d).map((k) => k.nama), ['PADI', 'KENTANG']);
+});
+
+test('jalankan: komoditas baru mencoba calon subsektor berurutan, berhenti di yang berisi', async () => {
+  const panggil = [];
+  const json = (o) => ({ ok: true, status: 200, text: async () => JSON.stringify(o) });
+  const fetch = async (url) => {
+    panggil.push(url);
+    const q = new URLSearchParams(url.split('?')[1] || '');
+    if (url.startsWith('/api/farmer')) return json([{ farmer_group_id: 1, farmer_group_name: 'P' }]);
+    if (url.startsWith('/api/kios')) return json([{ id: 9, name: 'K' }]);
+    if (url.startsWith('/api/cetak-count')) {
+      const n = q.get('subsectors') === 'HORTIKULTURA' ? 5 : 0;
+      return json({ total_rows: n, rows_per_part: 100, total_parts: n ? 1 : 0 });
+    }
+    return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode('%PDF-1.7').buffer };
+  };
+  const komoditas = C.daftarKomoditas(['KENTANG'], ['TANAMAN PANGAN', 'HORTIKULTURA', 'PERKEBUNAN']);
+  const r = await C.jalankan({ desa: [{ kode: '1', nama: 'A', kecamatan: 'K' }], komoditas, fetch });
+  const cek = panggil.filter((u) => u.startsWith('/api/cetak-count')).map((u) => new URLSearchParams(u.split('?')[1]).get('subsectors'));
+  assert.deepEqual(cek, ['TANAMAN PANGAN', 'HORTIKULTURA']);
+  assert.ok(panggil.some((u) => u.startsWith('/api/cetak-pdf') && u.includes('subsectors=HORTIKULTURA')));
+  assert.equal(r.berkas.length, 1);
+});
+
 function serverTiruan() {
   const pdf = new TextEncoder().encode('%PDF-1.7 tiruan');
   const panggil = [];

@@ -10,7 +10,8 @@
 (function (root) {
   'use strict';
 
-  // Semua komoditas di dropdown Cetak Data (tanpa peternakan). Subsektor ikut otomatis dari komoditas.
+  // Komoditas yang sudah dikenal subsektornya (dropdown Cetak Data e-RDKK 2026, tanpa peternakan).
+  // Daftar yang tampil diambil dari dropdown halaman (daftarKomoditas); ini cadangan + peta subsektor.
   // Urutan ini juga urutan file dalam satu poktan. bawaan = tercentang saat halaman dibuka.
   const SEMUA_KOMODITAS = [
     { nama: 'PADI', subsektor: 'TANAMAN PANGAN', bawaan: true },
@@ -26,10 +27,29 @@
   ];
   const KOMODITAS = SEMUA_KOMODITAS.filter((k) => k.bawaan);
 
+  const SUBSEKTOR_CADANGAN = ['TANAMAN PANGAN', 'PERKEBUNAN', 'HORTIKULTURA'];
+  const rapiNama = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().toUpperCase();
+
+  /**
+   * Daftar komoditas dari dropdown Cetak Data (nilai option). Yang sudah dikenal memakai subsektor & urutan
+   * SEMUA_KOMODITAS; yang baru ditaruh di belakang dengan subsektor '' + calon (dicoba satu per satu saat unduh).
+   * Dropdown kosong/tidak terbaca → SEMUA_KOMODITAS.
+   */
+  function daftarKomoditas(namaDropdown = [], subsektorDropdown = []) {
+    const nama = [...new Set([...namaDropdown].map(rapiNama).filter(Boolean))];
+    if (!nama.length) return SEMUA_KOMODITAS;
+    const ada = new Set(nama);
+    const kenal = SEMUA_KOMODITAS.filter((k) => ada.has(k.nama));
+    const sub = [...new Set([...subsektorDropdown].map(rapiNama).filter(Boolean))];
+    const calon = sub.length ? sub : SUBSEKTOR_CADANGAN;
+    const baru = nama.filter((n) => !SEMUA_KOMODITAS.some((k) => k.nama === n)).map((n) => ({ nama: n, subsektor: '', calon }));
+    return [...kenal, ...baru];
+  }
+
   /** Nama komoditas terpilih → daftar { nama, subsektor } dalam urutan baku (subsektor otomatis). */
-  function pilihKomoditas(nama) {
-    const s = new Set([...nama].map((n) => String(n).toUpperCase()));
-    return SEMUA_KOMODITAS.filter((k) => s.has(k.nama));
+  function pilihKomoditas(nama, daftar = SEMUA_KOMODITAS) {
+    const s = new Set([...nama].map(rapiNama));
+    return daftar.filter((k) => s.has(k.nama));
   }
 
   /** "Padi, Jagung, Kopi" */
@@ -67,6 +87,7 @@
           for (const ki of ks) {
             tugas.push({
               desa: d, poktan: p, kios: ki, komoditas: k, label, urutKom,
+              calonSub: k.subsektor ? [k.subsektor] : k.calon || SUBSEKTOR_CADANGAN,
               folder: `${bersih(d.kecamatan)}/${nomor(d.no || i + 1)} ${bersih(d.nama)}`,
               param: { desa: d.kode, poktan: String(p.id), subsectors: k.subsektor, commodities: k.nama, kios: String(ki.id) },
             });
@@ -161,7 +182,14 @@
     await kolam(tugas, paralel, async (t) => {
       const dasar = { kecamatan: t.desa.kecamatan, desa: t.desa.nama, poktan: t.poktan.nama, komoditas: t.komoditas.nama, kios: t.kios.nama };
       try {
-        const c = await A.ambilJson(`/api/cetak-count?${qs(t.param)}`, fetchFn);
+        // Komoditas baru (subsektor belum dikenal): coba tiap calon subsektor berurutan, pakai yang pertama berisi
+        let c = null;
+        for (const sub of t.calonSub) {
+          if (henti()) break;
+          const param = { ...t.param, subsectors: sub };
+          c = await A.ambilJson(`/api/cetak-count?${qs(param)}`, fetchFn);
+          if (Number(c && c.total_rows) > 0) { t.param = param; break; }
+        }
         const baris = Number(c && c.total_rows) || 0, bagian = Number(c && c.total_parts) || 0;
         for (let b = 1; b <= bagian && !henti(); b++) {
           const x = { t, dasar, bagian: b, totalBagian: bagian, baris, data: null, status: 'OK' };
@@ -257,7 +285,7 @@
     return '\ufeff' + ['DESA;KELOMPOK TANI;JENIS;' + `RDKK ${label}` + ';KOMODITAS;JUMLAH PDF;CATATAN', ...baris].join('\r\n');
   }
 
-  const api = { rekapPoktan, csvPoktan, KOMODITAS, SEMUA_KOMODITAS, pilihKomoditas, judulKomoditas, bersih, namaBerkas, susunTugas, jalankan, daftarIsi, kolam };
+  const api = { rekapPoktan, csvPoktan, KOMODITAS, SEMUA_KOMODITAS, daftarKomoditas, pilihKomoditas, judulKomoditas, bersih, namaBerkas, susunTugas, jalankan, daftarIsi, kolam };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkCetakPdf = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -11,7 +11,7 @@ Cukup pasang, login seperti biasa, lalu tombol/kartu bantuan muncul sendiri di h
 | SIMLUH | Download Poktan | Unduh Cetak Excel anggota semua poktan per desa (1 ZIP) |
 | SIMLUH | Rekap Luas Lahan | Dashboard luas & jumlah petani per komoditas dan per desa |
 | e-RDKK | Cek Duplikasi | Cari data ter-upload 2x di semua status, lalu hapus/batal salinannya |
-| e-RDKK | Cek PT | Padi/jagung bukan 2 PT & kopi lebih dari 1 PT, batal/hapus massal |
+| e-RDKK | Cek PT | Pengajuan yang jumlah PT-nya beda dari kebiasaan daerah Anda, batal/hapus massal |
 | e-RDKK | Status Upload | Poktan yang sudah/belum upload RDKK per desa |
 | e-RDKK | Rekap Luas | Luas lahan & luas tanam per desa → poktan → komoditas |
 | e-RDKK | Unduh Semua PDF | Cetak RDKK semua poktan sekaligus, rapi per desa (1 ZIP) |
@@ -146,11 +146,19 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
    dulu, lalu hapus. Kalau sudah diproses di atas Korluh (Kasie/Kabid/Kadis), koordinasikan dengan yang bersangkutan.
 5. Klik **Unduh Excel** untuk laporan (lembar Duplikasi + Ringkasan per kelompok tani).
 
-### Cek PT (padi & jagung 2 PT, kopi maks 1 PT)
+### Cek PT (jumlah PT per komoditas)
 
-Tab **Cek PT** menampilkan pengajuan **padi/jagung yang diisi 1 PT atau 3 PT** (seharusnya tepat 2 PT setahun)
-dan **kopi yang diisi lebih dari 1 PT** (kopi tanaman tahunan),
-dikelompokkan per kampung dan kelompok tani, dengan filter desa, poktan, komoditas, dan status.
+Jumlah PT yang benar berbeda tiap daerah (mis. jagung 2 PT di satu kabupaten, 3 PT di kabupaten lain), jadi tidak
+ditulis tetap. Tab **Cek PT** menganalisis pengajuan aktif: untuk tiap komoditas, jumlah PT yang **paling banyak diisi**
+dijadikan aturan. Pengajuan yang jumlah PT-nya berbeda ditampilkan, dikelompokkan per kampung dan kelompok tani,
+dengan filter desa, poktan, dan status.
+
+- Komoditas tampil sebagai **tombol** (hanya yang ada di data). Klik untuk menyaring; tiap tombol memuat angka **PT**
+  yang berlaku, jumlah yang salah, dan dasar analisisnya (mis. *94% isi 3 PT dari 820*).
+- Angka PT bisa **diubah manual** bila daerah Anda berbeda; disimpan di akun Chrome (hanya angka aturan) dan ditandai
+  *manual*, dengan tombol **↺ otomatis** untuk kembali ke hasil analisis.
+- Tanda **⚠ perlu dicek** bila mayoritas lemah (di bawah 60% atau seri; seri memakai angka yang lebih kecil),
+  **data sedikit** bila pengajuan komoditas itu kurang dari 5.
 
 - **Batal** (status *Menunggu persetujuan Korluh*): ditarik kembali menjadi *Belum dikirim* supaya bisa diperbaiki.
 - **Hapus** (status *Belum dikirim ke Korluh*): dihapus permanen, untuk diunggah ulang dengan data yang benar.
@@ -192,8 +200,9 @@ beserta jumlah petani.
 
 Di menu **Cetak Data** muncul kartu **Unduh Semua PDF (ZIP)** di bawah tabel bawaan.
 
-- Centang komoditas (bawaan: **padi, jagung, kopi**; tersedia juga kedelai, ubi kayu, kakao, tebu rakyat, cabai,
-  bawang merah, bawang putih). Subsektor diisi otomatis sesuai komoditas; peternakan tidak disertakan.
+- Centang komoditas (bawaan: **padi, jagung, kopi**). Pilihan komoditas dibaca dari dropdown Komoditas bawaan
+  halaman Cetak Data, jadi komoditas yang ditambahkan e-RDKK ikut muncul. Subsektor diisi otomatis; untuk komoditas
+  baru yang belum dikenal, subsektor dicoba satu per satu sampai ada datanya.
 - Centang desa (bawaan: semua desa), klik **Mulai unduh**.
 - Untuk setiap kelompok tani × kios × komoditas terpilih, ekstensi memakai PDF bawaan e-RDKK
   (sama dengan tombol Cetak Data). Kombinasi tanpa data dilewati.
@@ -237,7 +246,7 @@ modules/
   erdkk/
     core/api.js          GET /api/pengajuan (semua status) per 500 baris; POST delete-pengajuan / batal-pengajuan
     core/duplikasi.js    sidik baris (semua kolom kecuali id/status/cap waktu) → kelompok identik lintas status
-    core/cekmt.js        padi/jagung yang jumlah PT-nya bukan 2, aturan Batal (status 2) / Hapus (status 1)
+    core/cekmt.js        analisis PT mayoritas per komoditas → pengajuan yang PT-nya berbeda, aturan Batal (status 2) / Hapus (status 1)
     core/upload.js       status upload per poktan (master /api/poktan vs pengajuan aktif)
     core/rekap.js        rekap luas lahan & pupuk per desa → poktan → komoditas, filter desa/poktan/status
     core/laporan.js      tata letak Excel duplikasi & rekap luas

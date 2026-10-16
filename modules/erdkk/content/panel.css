@@ -122,6 +122,27 @@ button:disabled { cursor: not-allowed; opacity: .6; }
 .filter, .filter-rekap { display: grid; gap: 10px; margin-bottom: 12px; }
 .filter-rekap { grid-template-columns: repeat(4, 1fr); }
 .filter-baris { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.filter-rekap.tiga { grid-template-columns: repeat(3, 1fr); }
+
+/* ── Cek PT: tombol komoditas + angka PT ─────────────────────── */
+.kom-pt { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: stretch; }
+.kom-semua { padding: 8px 14px; border: 1px solid var(--gray-300); border-radius: var(--radius-card); background: #fff;
+  color: var(--gray-700); font: inherit; font-size: 12.35px; font-weight: 600; cursor: pointer; }
+.kom-semua.aktif, .kom.aktif { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
+.kom { display: grid; grid-template-columns: auto auto; column-gap: 10px; row-gap: 2px; align-items: center;
+  padding: 6px 10px; border: 1px solid var(--garis); border-radius: var(--radius-card); background: #fff; }
+.kom.ragu { background: var(--warning-light); }
+.kom-nama { display: grid; text-align: left; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; color: var(--gray-900); }
+.kom-nama b { font-size: 13px; font-weight: 700; }
+.kom-salah { font-size: 11.5px; font-weight: 600; color: var(--primary-active); }
+.kom.ada-salah .kom-salah { color: var(--danger); }
+.kom-pt-isi { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: var(--gray-700); }
+.kom-pt-isi select { width: auto; padding: 4px 6px; font-weight: 700; color: var(--gray-900); }
+.kom-info, .kom-tanda { grid-column: 1 / -1; font-size: 11px; color: var(--gray-500); }
+.kom-tanda { color: #b78a00; font-weight: 600; }
+.kom-reset { grid-column: 1 / -1; justify-self: start; padding: 0; border: 0; background: none; font: inherit;
+  font-size: 11px; font-weight: 600; color: var(--blue); cursor: pointer; }
+.kom-nama:focus-visible, .kom-semua:focus-visible, .kom-reset:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .pilih { display: grid; gap: 4px; font-size: 12.35px; font-weight: 500; color: var(--gray-700); }
 select, input[type="search"] {
   width: 100%; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius);
@@ -234,5 +255,5 @@ button.hapus.besar:hover:not(:disabled) { background: var(--danger-active); }
   .fab { right: 14px; bottom: 14px; }
   .isi, .kepala, .aksi { padding-left: 16px; padding-right: 16px; }
   .tab-utama { padding: 0 16px; gap: 16px; }
-  .filter-rekap, .filter-baris { grid-template-columns: 1fr 1fr; }
+  .filter-rekap, .filter-rekap.tiga, .filter-baris { grid-template-columns: 1fr 1fr; }
 }

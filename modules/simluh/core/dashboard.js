@@ -5,8 +5,23 @@
 (function (root) {
   'use strict';
 
-  const TERNAK = /sapi|kerbau|kambing|domba|babi|kuda|ayam|itik|bebek|entok|mentok|angsa|puyuh|kelinci|unggas|ternak|lebah|ikan|lele|nila|gurame|patin|udang/i;
-  const apaTernak = (k) => TERNAK.test(String(k || ''));
+  // Ternak & perikanan (satuan ekor/unit) tidak masuk luas lahan. Dicocokkan per kata, mis. "Sapi Potong", "Ayam Ras Petelur".
+  const KATA_TERNAK = [
+    // ternak besar & kecil
+    'sapi', 'kerbau', 'kambing', 'domba', 'babi', 'kuda', 'rusa', 'kelinci',
+    // unggas
+    'ayam', 'itik', 'bebek', 'entok', 'entog', 'mentok', 'angsa', 'puyuh', 'merpati', 'burung', 'walet', 'kalkun',
+    'unggas', 'broiler', 'petelur', 'pedaging', 'layer',
+    // aneka ternak
+    'lebah', 'madu', 'ulat', 'sutera', 'sutra', 'ternak', 'hewan',
+    // perikanan
+    'ikan', 'lele', 'nila', 'gurame', 'gurami', 'patin', 'mujair', 'mujaer', 'bandeng', 'kerapu', 'belut', 'udang',
+    'kepiting', 'katak', 'kodok',
+  ];
+  const TERNAK = new RegExp(`(^|[^a-z])(${KATA_TERNAK.join('|')})`, 'i');
+  // Tanaman pakan ternak (Hijauan Pakan Ternak, Rumput Gajah, …) diukur dalam ha, jadi tetap dihitung luas
+  const PAKAN = /pakan|hijauan|rumput|\bhpt\b/i;
+  const apaTernak = (k) => { const s = String(k || ''); return TERNAK.test(s) && !PAKAN.test(s); };
   const rapi = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
   /** "2", "0,5", "1.25" → angka; kosong/teks → 0 */
   function angka(s) {

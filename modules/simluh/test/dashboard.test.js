@@ -25,6 +25,13 @@ test('uraiAnggota: tiga pasang komoditas-volume, tanpa nama/NIK', () => {
   assert.ok(!JSON.stringify(a).includes('1808000000000001'));
 });
 
+test('apaTernak: ternak, unggas & ikan tidak masuk luas; tanaman pakan ternak tetap luas', () => {
+  for (const k of ['Sapi Potong', 'Ayam Ras Petelur', 'Itik', 'Kambing/Domba', 'Entog', 'Burung Walet', 'Lebah Madu',
+    'Ikan Nila', 'Lele', 'Kalkun', 'Ulat Sutera', 'Babi']) assert.equal(D.apaTernak(k), true, k);
+  for (const k of ['Padi Sawah', 'Kopi', 'Jagung', 'Kakao', 'Vanili', 'Lada', 'Hijauan Pakan Ternak', 'Rumput Gajah',
+    'Cengkeh', 'Pisang', 'Kelapa Sawit', 'Karet']) assert.equal(D.apaTernak(k), false, k);
+});
+
 test('rekap: luas per komoditas, ternak dipisah, filter desa, petani dihitung sekali', () => {
   const data = [
     { desa: 'KOTAWAY', poktan: 'A', anggota: D.uraiAnggota(JUDUL, [b('Kopi', '2', 'Jagung', '1'), b('Kopi', '1', 'Kopi', '0,5'), b('Kambing/Domba', '5')]) },
