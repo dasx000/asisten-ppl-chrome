@@ -1,0 +1,44 @@
+@charset "UTF-8";
+/* Kartu "Download Poktan" di List Kelompok Tani — gaya Soft UI SIMLUHTAN (Open Sans, teks #344767, aksen magenta). */
+:host { all: initial; display: block; margin: 0 0 24px; font-family: "Open Sans", Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #344767; }
+*, *::before, *::after { box-sizing: border-box; }
+button, input { font: inherit; color: inherit; }
+.kartu { background: #fff; border-radius: 16px; padding: 22px 24px; box-shadow: 0 20px 27px 0 rgba(0, 0, 0, .05); border: 1px solid #e9ecef; }
+.kartu.tutup { padding: 14px 24px; }
+.kepala { display: flex; justify-content: space-between; align-items: center; gap: 16px; width: 100%; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+.panah { font-size: 18px; color: #cb0c9f; line-height: 1; }
+h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.sub { margin: 2px 0 0; color: #8392ab; font-size: 12.5px; }
+.sub.ringkas { margin-top: 10px; }
+.ket { color: #67748e; margin: 12px 0 14px; max-width: 900px; }
+.ket b { color: #344767; font-weight: 700; }
+.baris-aksi { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+.baris-aksi.kecil { margin: 0 0 10px; }
+.label { font-weight: 700; color: #67748e; margin-right: 4px; }
+.cari { padding: 6px 12px; border: 1px solid #d2d6da; border-radius: 8px; min-width: 200px; background: #fff; }
+.cari:focus { outline: none; border-color: #e293d3; box-shadow: 0 0 0 2px #fbe9f7; }
+.tautan { border: 0; background: none; padding: 0; color: #cb0c9f; font-weight: 600; cursor: pointer; }
+.tautan:disabled { color: #8392ab; cursor: not-allowed; }
+.desa { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 10px; }
+.desa label { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e9ecef; border-radius: 8px; cursor: pointer; color: #67748e; }
+.desa label.dipilih { border-color: #cb0c9f; background: #fdf0fa; color: #344767; }
+.desa input { accent-color: #cb0c9f; margin: 0; }
+.desa .nama { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 13px; }
+.desa .jml { color: #8392ab; font-size: 12px; white-space: nowrap; }
+.btn { padding: 9px 20px; border-radius: 8px; border: 1px solid #d2d6da; background: #fff; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .02em; cursor: pointer; }
+.btn.utama { border: 0; color: #fff; background-image: linear-gradient(310deg, #7928ca, #ff0080); box-shadow: 0 4px 7px -1px rgba(0,0,0,.11); }
+.btn.bahaya { border: 0; color: #fff; background-image: linear-gradient(310deg, #ea0606, #ff667c); }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.progres { margin-top: 16px; }
+.bar { height: 6px; border-radius: 6px; background: #f0f2f5; overflow: hidden; }
+.bar i { display: block; height: 100%; background: #cb0c9f; transition: width .2s; }
+.status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; color: #67748e; }
+.status p { margin: 0; }
+.waktu { color: #8392ab; font-size: 12px; }
+.putar { width: 16px; height: 16px; flex: none; border-radius: 50%; border: 2px solid #fbe9f7; border-top-color: #cb0c9f; animation: putar .8s linear infinite; }
+@keyframes putar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .putar { animation-duration: 3s; } }
+.galat, .peringatan, .ok { margin: 14px 0 0; padding: 10px 14px; border-radius: 8px; }
+.galat { background: #fde8e8; color: #b30505; }
+.peringatan { background: #fff8dd; color: #7a5c00; }
+.ok { background: #e6f9ec; color: #1b7a3a; }

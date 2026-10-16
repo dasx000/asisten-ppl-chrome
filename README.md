@@ -10,7 +10,7 @@ Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Pytho
 
 | Modul | Situs | Fungsi |
 |---|---|---|
-| SIMLUH — Update dari Excel | simluh.pertanian.go.id | Ubah & tambah anggota poktan dari file Cetak Excel |
+| SIMLUH — Update dari Excel | simluh.pertanian.go.id | Ubah & tambah anggota poktan dari file Cetak Excel; Download Poktan (Cetak Excel anggota per desa, ZIP) |
 | e-Banper — Kuota Program | ebanper.pertanian.go.id | Lihat Rancangan Pusat, Telah Diajukan, dan Sisa semua kegiatan sekaligus |
 | e-RDKK — Duplikasi, Cek PT & Rekap Luas | erdkk25.pertanian.go.id | Data ter-upload 2x di **semua** status; padi/jagung yang PT-nya bukan 2 (batal/hapus massal); rekap luas lahan |
 
@@ -57,6 +57,20 @@ File yang dipakai harus milik poktan yang sedang dibuka. Kolom NIK sebaiknya ber
 supaya angkanya tidak rusak menjadi `1,8E+15` atau berakhiran `0000`.
 
 ---
+
+### Download Poktan: Cetak Excel anggota per desa (ZIP)
+
+Di halaman **List Kelompok Tani** (menu Kelompok Tani) muncul kartu **Download Poktan** di atas tabel. Bawaannya tertutup; klik judulnya untuk membuka pilihan desa
+(daftar poktan baru dibaca saat itu).
+
+1. Centang desa yang diinginkan (ada kotak cari; pilihan terakhir diingat per kecamatan).
+2. Klik **Mulai download**. Untuk setiap poktan di desa itu, ekstensi mengambil file **Cetak Excel** bawaan SIMLUH
+   (sama dengan tombol Cetak Excel di menu *Tambah Anggota*).
+3. Semua file disatukan dalam satu ZIP `Anggota Poktan - Kec <Kecamatan> - <Desa / n Desa>.zip`:
+   folder `DESA/01 NAMA POKTAN.xls` + `DAFTAR ISI.csv` (status tiap poktan: OK / GAGAL / DIHENTIKAN).
+
+- Membaca semua poktan di kecamatan, bukan hanya 10 baris yang tampil di tabel.
+- Hanya membaca (GET), 3 unduhan paralel. File berisi NIK tidak disimpan di browser, hanya diberikan sebagai unduhan.
 
 ### Dashboard Home: Rekap Luas Lahan per Komoditas
 
@@ -170,15 +184,17 @@ beserta jumlah petani.
 
 Di menu **Cetak Data** muncul kartu **Unduh Semua PDF (ZIP)** di bawah tabel bawaan.
 
+- Centang komoditas (bawaan: **padi, jagung, kopi**; tersedia juga kedelai, ubi kayu, kakao, tebu rakyat, cabai,
+  bawang merah, bawang putih). Subsektor diisi otomatis sesuai komoditas; peternakan tidak disertakan.
 - Centang desa (bawaan: semua desa), klik **Mulai unduh**.
-- Untuk setiap kelompok tani × kios × komoditas **padi, jagung, kopi**, ekstensi memakai PDF bawaan e-RDKK
+- Untuk setiap kelompok tani × kios × komoditas terpilih, ekstensi memakai PDF bawaan e-RDKK
   (sama dengan tombol Cetak Data). Kombinasi tanpa data dilewati.
 - Isi ZIP (urut siap cetak): `KECAMATAN/09 KOTAWAY/03 MUKTI JAYA - JAGUNG - YOGI TANI.pdf`; desa bernomor urut abjad,
-  file bernomor urut per desa (poktan A–Z → padi, jagung, kopi → kios); lebih dari 100 baris dipecah
+  file bernomor urut per desa (poktan A–Z → komoditas → kios); lebih dari 100 baris dipecah
   `… (bagian 1).pdf`, `… (bagian 2).pdf` mengikuti e-RDKK. Ada `DAFTAR ISI.csv` berisi status tiap berkas.
 - Tahun mengikuti tahun yang aktif di menu e-RDKK (mis. 2026). Hanya membaca; PDF tidak disimpan di browser.
 - Setelah selesai tampil rekap: berapa kelompok tani terdaftar (Master Data → Kelompok Tani) yang sudah punya
-  RDKK padi/jagung/kopi; daftar lengkap ada/belum di `REKAP POKTAN.csv` dalam ZIP.
+  RDKK komoditas terpilih; daftar lengkap ada/belum di `REKAP POKTAN.csv` dalam ZIP.
 - Perkiraan: ±15 detik per desa.
 
 ## Untuk pengembang
@@ -197,6 +213,8 @@ modules/
     core/aturan.js       membaca file & aturan validasi (terjemahan scripts/run_simluh.py DASBOT), tanpa jaringan
     core/api.js          request ke SIMLUH dengan sesi login browser, token CSRF dipasang sendiri
     core/proses.js       alur periksa → kirim untuk mode ubah/tambah
+    core/unduhpoktan.js  Download Poktan: urai List Kelompok Tani, unduh Cetak Excel per poktan, susun ZIP
+    content/unduhpoktan.js  kartu Download Poktan di List Kelompok Tani (Shadow DOM)
     content/panel.js     panel di halaman (Shadow DOM)
     content/panel.css
     test/                test Node (tidak ikut ZIP)

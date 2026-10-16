@@ -23,6 +23,17 @@ test('susunTugas: poktan × 3 komoditas × kios, folder Kecamatan/NN Desa, nama 
   assert.deepEqual(t[0].param, { desa: '1808022014', poktan: '1', subsectors: 'TANAMAN PANGAN', commodities: 'PADI', kios: '10' });
 });
 
+test('pilihKomoditas: subsektor otomatis, urutan baku, tanpa peternakan; bawaan padi/jagung/kopi', () => {
+  assert.deepEqual(C.KOMODITAS.map((k) => k.nama), ['PADI', 'JAGUNG', 'KOPI']);
+  const k = C.pilihKomoditas(['cabai', 'KOPI', 'UBI KAYU']);
+  assert.deepEqual(k.map((x) => [x.nama, x.subsektor]), [['UBI KAYU', 'TANAMAN PANGAN'], ['KOPI', 'PERKEBUNAN'], ['CABAI', 'HORTIKULTURA']]);
+  assert.ok(!C.SEMUA_KOMODITAS.some((x) => x.subsektor === 'PETERNAKAN'));
+  assert.equal(C.judulKomoditas(k), 'Ubi Kayu, Kopi, Cabai');
+  const desa = [{ kode: '1', nama: 'A', kecamatan: 'K' }];
+  const t = C.susunTugas(desa, new Map([['1', [{ id: 1, nama: 'P' }]]]), new Map([['1', [{ id: 9, nama: 'K' }]]]), C.pilihKomoditas(['BAWANG MERAH']));
+  assert.deepEqual(t.map((x) => x.param.subsectors + '|' + x.param.commodities), ['HORTIKULTURA|BAWANG MERAH']);
+});
+
 function serverTiruan() {
   const pdf = new TextEncoder().encode('%PDF-1.7 tiruan');
   const panggil = [];

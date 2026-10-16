@@ -1,6 +1,6 @@
 // ================= KARTU "UNDUH SEMUA PDF" DI HALAMAN CETAK DATA e-RDKK ================= \\
 // Hanya muncul di menu Cetak Data. Mengunduh PDF bawaan e-RDKK (sama dengan tombol Cetak Data) untuk
-// padi, jagung, dan kopi semua poktan & kios di desa terpilih, lalu menyatukannya dalam satu ZIP:
+// komoditas yang dicentang (bawaan padi, jagung, kopi; subsektor otomatis) semua poktan & kios di desa terpilih, lalu menyatukannya dalam satu ZIP:
 //   KECAMATAN/DESA/POKTAN/KOMODITAS - POKTAN - KIOS.pdf  (+ DAFTAR ISI.csv)
 // Hanya membaca (GET). PDF berisi NIK: tidak disimpan di browser, hanya diberikan sebagai unduhan.
 
@@ -63,7 +63,7 @@
     render();
   }
 
-  const st = { pilih: new Set(), memuatDesa: true, jalan: false, henti: false, p: null, hasil: null, galat: '', zip: null, namaZip: '' };
+  const st = { kom: new Set(C.KOMODITAS.map((k) => k.nama)), pilih: new Set(), memuatDesa: true, jalan: false, henti: false, p: null, hasil: null, galat: '', zip: null, namaZip: '' };
 
   const host = h('div', { id: 'asisten-erdkk-cetak' });
   const akar = host.attachShadow({ mode: 'open' });
@@ -87,11 +87,12 @@
       h('div', { class: 'kepala' },
         h('div', {},
           h('h3', {}, 'Unduh Semua PDF (ZIP)'),
-          h('p', { class: 'sub' }, `Asisten PPL · Padi, Jagung, Kopi${tahun ? ` · e-RDKK ${tahun}` : ''}`))),
+          h('p', { class: 'sub' }, `Asisten PPL · ${C.judulKomoditas(C.pilihKomoditas(st.kom)) || 'belum ada komoditas'}${tahun ? ` · e-RDKK ${tahun}` : ''}`))),
       h('p', { class: 'ket' },
         'Mengunduh PDF Cetak Data untuk semua kelompok tani dan kios di desa yang dicentang, lalu disatukan dalam satu ZIP berisi folder ',
         h('b', {}, 'Kecamatan / 01 Desa'), ' dengan nama berkas bernomor urut ', h('b', {}, '01 POKTAN - KOMODITAS - KIOS.pdf'),
         '. Kombinasi tanpa data dilewati. Hanya membaca data, tidak mengubah apa pun.'),
+      viewKomoditas(),
       h('div', { class: 'baris-aksi kecil' },
         h('span', { class: 'label' }, `Desa (${st.pilih.size}/${daftarDesa.length})`),
         h('button', { type: 'button', class: 'tautan', disabled: st.jalan, onclick: () => { daftarDesa.forEach((d) => st.pilih.add(d.kode)); render(); } }, 'Pilih semua'),
@@ -114,9 +115,30 @@
       h('div', { class: 'baris-aksi' },
         st.jalan
           ? h('button', { type: 'button', class: 'btn bahaya', disabled: st.henti, onclick: () => { st.henti = true; render(); } }, st.henti ? 'Menghentikan…' : 'Hentikan')
-          : h('button', { type: 'button', class: 'btn utama', disabled: !st.pilih.size || st.memuatDesa, onclick: mulai }, 'Mulai unduh'),
+          : h('button', { type: 'button', class: 'btn utama', disabled: !st.pilih.size || !st.kom.size || st.memuatDesa, onclick: mulai }, 'Mulai unduh'),
         st.zip && !st.jalan && h('button', { type: 'button', class: 'btn', onclick: () => simpan() }, 'Unduh ZIP lagi')),
     ].filter((x) => x instanceof Node));
+  }
+
+  // Pilihan komoditas, dikelompokkan per subsektor (subsektor dikirim otomatis sesuai komoditas)
+  function viewKomoditas() {
+    const grup = new Map();
+    for (const k of C.SEMUA_KOMODITAS) {
+      if (!grup.has(k.subsektor)) grup.set(k.subsektor, []);
+      grup.get(k.subsektor).push(k);
+    }
+    const ubah = (nama, nyala) => { nyala ? st.kom.add(nama) : st.kom.delete(nama); render(); };
+    return h('div', { class: 'komoditas' },
+      h('div', { class: 'baris-aksi kecil' },
+        h('span', { class: 'label' }, `Komoditas (${st.kom.size}/${C.SEMUA_KOMODITAS.length})`),
+        h('button', { type: 'button', class: 'tautan', disabled: st.jalan, onclick: () => { st.kom = new Set(C.KOMODITAS.map((k) => k.nama)); render(); } }, 'Bawaan (padi, jagung, kopi)'),
+        h('button', { type: 'button', class: 'tautan', disabled: st.jalan, onclick: () => { C.SEMUA_KOMODITAS.forEach((k) => st.kom.add(k.nama)); render(); } }, 'Pilih semua')),
+      h('div', { class: 'grup-kom' }, [...grup].map(([sub, daftar]) => h('div', { class: 'grup' },
+        h('span', { class: 'subsektor' }, sub),
+        h('div', { class: 'chip' }, daftar.map((k) => h('label', { class: st.kom.has(k.nama) ? 'dipilih' : '' },
+          h('input', { type: 'checkbox', checked: st.kom.has(k.nama), disabled: st.jalan, onchange: (e) => ubah(k.nama, e.target.checked) }),
+          k.nama)))))),
+      !st.kom.size && h('p', { class: 'galat' }, 'Centang minimal satu komoditas.'));
   }
 
   function viewRekap(r) {
@@ -124,7 +146,7 @@
     return h('div', { class: 'rekap' },
       h('div', { class: 'angka' },
         h('div', {}, h('b', {}, `${r.ada} / ${r.terdaftar}`), h('span', {}, `kelompok tani sudah punya RDKK (${pct}%)`)),
-        h('div', {}, h('b', { class: r.belum ? 'merah' : '' }, r.belum), h('span', {}, 'belum ada RDKK padi/jagung/kopi')),
+        h('div', {}, h('b', { class: r.belum ? 'merah' : '' }, r.belum), h('span', {}, `belum ada RDKK ${r.label.toLowerCase()}`)),
         r.kwt.terdaftar ? h('div', {}, h('b', {}, `${r.kwt.ada} / ${r.kwt.terdaftar}`), h('span', {}, 'di antaranya KWT')) : null),
       h('p', { class: 'sub' }, `Total = kelompok tani di Master Data → Kelompok Tani untuk desa yang dicentang` +
         (r.kembar && r.kembar.length ? ` (${r.mentah} baris di master; ${r.kembar.length} tercatat dua kali sehingga dihitung sekali: ${r.kembar.join(', ')})` : '') + '. ' +
@@ -177,7 +199,9 @@
     try {
       const desa = daftarDesa.filter((d) => st.pilih.has(d.kode))
         .map((d) => ({ ...d, kecamatan: d.kecamatan || `KECAMATAN ${d.kode.slice(0, 6)}` }));
-      const r = await C.jalankan({ desa, onProgres: (p) => { st.p = { ...p }; st.terakhirMaju = Date.now(); render(); }, henti: () => st.henti });
+      const komoditas = C.pilihKomoditas(st.kom);
+      const label = komoditas.map((k) => k.nama).join('/');
+      const r = await C.jalankan({ desa, komoditas, onProgres: (p) => { st.p = { ...p }; st.terakhirMaju = Date.now(); render(); }, henti: () => st.henti });
       st.p = { ...st.p, tahap: 'zip' }; render();
       await new Promise((ok) => setTimeout(ok, 30));
       let master = [];
@@ -185,12 +209,12 @@
         const m = await API.ambilJson('/api/poktan?draw=1&start=0&length=-1');
         master = Array.isArray(m) ? m : (m && m.data) || [];
       } catch (e) { if (e instanceof API.SesiHabis) throw e; }
-      st.rekap = master.length ? C.rekapPoktan(master, desa.map((d) => d.nama), r.log) : null;
+      st.rekap = master.length ? { ...C.rekapPoktan(master, desa.map((d) => d.nama), r.log), label } : null;
       const isi = [...r.berkas, ['DAFTAR ISI.csv', C.daftarIsi(r.log)]];
-      if (st.rekap) isi.push(['REKAP POKTAN.csv', C.csvPoktan(st.rekap)]);
+      if (st.rekap) isi.push(['REKAP POKTAN.csv', C.csvPoktan(st.rekap, label)]);
       const kecs = [...new Set(desa.map((d) => d.kecamatan))];
       st.zip = X.zip(isi);
-      st.namaZip = `RDKK ${tahun || ''} - ${kecs.length === 1 ? C.bersih(kecs[0]) : 'Beberapa Kecamatan'} - PDF Padi Jagung Kopi.zip`.replace(/\s+/g, ' ');
+      st.namaZip = `RDKK ${tahun || ''} - ${kecs.length === 1 ? C.bersih(kecs[0]) : 'Beberapa Kecamatan'} - PDF ${komoditas.length === C.SEMUA_KOMODITAS.length ? 'Semua Komoditas' : C.judulKomoditas(komoditas, ' ')}.zip`.replace(/\s+/g, ' ');
       st.hasil = { pdf: r.berkas.length, gagal: r.log.filter((x) => x.status !== 'OK').length, dihentikan: r.dihentikan };
       st.p = { ...st.p, tahap: 'selesai' };
       if (r.berkas.length || r.log.length) simpan();

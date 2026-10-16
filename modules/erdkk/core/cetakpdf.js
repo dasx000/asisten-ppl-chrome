@@ -10,11 +10,30 @@
 (function (root) {
   'use strict';
 
-  const KOMODITAS = [
-    { nama: 'PADI', subsektor: 'TANAMAN PANGAN' },
-    { nama: 'JAGUNG', subsektor: 'TANAMAN PANGAN' },
-    { nama: 'KOPI', subsektor: 'PERKEBUNAN' },
+  // Semua komoditas di dropdown Cetak Data (tanpa peternakan). Subsektor ikut otomatis dari komoditas.
+  // Urutan ini juga urutan file dalam satu poktan. bawaan = tercentang saat halaman dibuka.
+  const SEMUA_KOMODITAS = [
+    { nama: 'PADI', subsektor: 'TANAMAN PANGAN', bawaan: true },
+    { nama: 'JAGUNG', subsektor: 'TANAMAN PANGAN', bawaan: true },
+    { nama: 'KEDELAI', subsektor: 'TANAMAN PANGAN' },
+    { nama: 'UBI KAYU', subsektor: 'TANAMAN PANGAN' },
+    { nama: 'KOPI', subsektor: 'PERKEBUNAN', bawaan: true },
+    { nama: 'KAKAO', subsektor: 'PERKEBUNAN' },
+    { nama: 'TEBU RAKYAT', subsektor: 'PERKEBUNAN' },
+    { nama: 'CABAI', subsektor: 'HORTIKULTURA' },
+    { nama: 'BAWANG MERAH', subsektor: 'HORTIKULTURA' },
+    { nama: 'BAWANG PUTIH', subsektor: 'HORTIKULTURA' },
   ];
+  const KOMODITAS = SEMUA_KOMODITAS.filter((k) => k.bawaan);
+
+  /** Nama komoditas terpilih → daftar { nama, subsektor } dalam urutan baku (subsektor otomatis). */
+  function pilihKomoditas(nama) {
+    const s = new Set([...nama].map((n) => String(n).toUpperCase()));
+    return SEMUA_KOMODITAS.filter((k) => s.has(k.nama));
+  }
+
+  /** "Padi, Jagung, Kopi" */
+  const judulKomoditas = (daftar, pisah = ', ') => daftar.map((k) => k.nama.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())).join(pisah);
   const JEDA_ULANG = [3, 10];
   const tidur = (d) => new Promise((r) => setTimeout(r, d * 1000));
 
@@ -58,7 +77,7 @@
     return tugas;
   }
 
-  /** Beri nomor urut per desa: poktan A–Z → komoditas (padi, jagung, kopi) → kios → bagian. */
+  /** Beri nomor urut per desa: poktan A–Z → komoditas (urutan SEMUA_KOMODITAS) → kios → bagian. */
   function beriNomor(item) {
     const perFolder = new Map();
     for (const x of item) {
@@ -231,14 +250,14 @@
   }
 
   /** REKAP POKTAN.csv */
-  function csvPoktan(rekap) {
+  function csvPoktan(rekap, label = 'PADI/JAGUNG/KOPI') {
     const sel = (v) => { const s = String(v == null ? '' : v); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const baris = rekap.daftar.map((x) => [x.desa, x.nama, x.kwt ? 'KWT' : 'POKTAN', x.ada ? 'ADA' : 'BELUM ADA',
       x.komoditas.join(', '), x.pdf, x.diluarMaster ? 'Tidak ditemukan di Master Data Kelompok Tani (nama berbeda?)' : ''].map(sel).join(';'));
-    return '\ufeff' + ['DESA;KELOMPOK TANI;JENIS;RDKK PADI/JAGUNG/KOPI;KOMODITAS;JUMLAH PDF;CATATAN', ...baris].join('\r\n');
+    return '\ufeff' + ['DESA;KELOMPOK TANI;JENIS;' + `RDKK ${label}` + ';KOMODITAS;JUMLAH PDF;CATATAN', ...baris].join('\r\n');
   }
 
-  const api = { rekapPoktan, csvPoktan, KOMODITAS, bersih, namaBerkas, susunTugas, jalankan, daftarIsi, kolam };
+  const api = { rekapPoktan, csvPoktan, KOMODITAS, SEMUA_KOMODITAS, pilihKomoditas, judulKomoditas, bersih, namaBerkas, susunTugas, jalankan, daftarIsi, kolam };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ErdkkCetakPdf = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -17,6 +17,14 @@ button, input { font: inherit; color: inherit; }
 .desa label { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e1e3ea; border-radius: 6px; cursor: pointer; color: #4b5675; }
 .desa label.dipilih { border-color: #50cd89; background: #e8fff3; color: #071437; }
 .desa input { accent-color: #50cd89; margin: 0; }
+.komoditas { margin: 0 0 16px; }
+.grup-kom { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.grup { display: flex; flex-direction: column; gap: 6px; }
+.subsektor { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: #99a1b7; }
+.chip { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip label { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #e1e3ea; border-radius: 6px; cursor: pointer; color: #4b5675; }
+.chip label.dipilih { border-color: #50cd89; background: #e8fff3; color: #071437; }
+.chip input { accent-color: #50cd89; margin: 0; }
 .btn { padding: 9px 18px; border-radius: 6px; border: 1px solid #dbdfe9; background: #fff; font-weight: 500; cursor: pointer; }
 .btn.utama { background: #50cd89; border-color: #50cd89; color: #fff; }
 .btn.utama:hover { background: #47be7d; }
