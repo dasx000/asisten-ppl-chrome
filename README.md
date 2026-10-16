@@ -22,19 +22,21 @@ dikirim/dihapus sebelum Anda klik konfirmasi. Setiap modul bisa dinyalakan/dimat
 
 > Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.
 
-## Cara pasang (mode developer)
+## Cara pasang
 
-1. Ekstrak file `asisten-ppl-vX.Y.Z.zip` ke folder tetap, misalnya `Documents\AsistenPPL`.
-   Jangan hapus atau pindahkan folder ini setelah dipasang.
-2. Buka `chrome://extensions` (Chrome) atau `edge://extensions` (Edge).
-3. Nyalakan **Developer mode** / **Mode pengembang**.
-4. Klik **Load unpacked** / **Muat yang belum dikemas**, lalu pilih folder tadi (folder yang berisi `manifest.json`).
+1. **Download:** di halaman ini, klik tombol hijau **Code** → **Download ZIP**.
+2. **Ekstrak:** buka folder Downloads, klik kanan file `asisten-ppl-chrome-main.zip` → **Extract All** / **Ekstrak Semua**.
+   Pindahkan folder hasil ekstrak ke tempat tetap, misalnya `Documents\AsistenPPL`.
+   Jangan hapus atau pindahkan folder ini setelah dipasang, karena ekstensi dibaca dari folder ini.
+3. Buka Chrome, ketik `chrome://extensions` di kolom alamat lalu tekan Enter (Edge: `edge://extensions`).
+4. Nyalakan saklar **Developer mode** / **Mode pengembang** di pojok kanan atas.
+5. Klik **Load unpacked** / **Muat yang belum dikemas**, lalu pilih folder tadi.
+   Pilih folder yang **di dalamnya langsung ada file `manifest.json`**. Kalau setelah ekstrak ada folder di dalam
+   folder dengan nama sama, pilih folder yang di dalam.
+6. Selesai. Ikon Asisten PPL muncul di toolbar (kalau tidak terlihat, klik ikon puzzle 🧩 lalu sematkan/pin).
 
-**Atau lewat Git** (lebih mudah diperbarui): `git clone https://github.com/dasx000/asisten-ppl-chrome.git`,
-lalu lakukan langkah 2–4 dengan memilih folder hasil clone.
-
-**Memperbarui ke versi baru:** ganti isi folder dengan versi baru (atau `git pull` bila memakai Git),
-lalu klik tombol ↻ (Reload) pada ekstensi di halaman `chrome://extensions`.
+**Memperbarui ke versi baru:** download ZIP lagi (langkah 1–2), salin isinya ke folder lama dan timpa semua file,
+lalu buka `chrome://extensions` dan klik tombol ↻ (Reload) pada Asisten PPL.
 
 **Menyalakan/mematikan modul:** klik ikon Asisten PPL di toolbar, lalu geser saklar modulnya.
 
