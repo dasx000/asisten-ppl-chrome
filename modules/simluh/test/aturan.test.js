@@ -15,18 +15,18 @@ const KOMODITAS = new Map([
 const LAMA = {
   id_anggota: '1', id_poktan: '99', nama_anggota: 'BUDI', nama_ktp: 'BUDI', jenis_kelamin: '1',
   kode_komoditas: '2', volume: '1.5', kode_komoditas2: '10', volume2: '1', kode_komoditas3: '', volume3: '',
-  lainnya: '', alamat_ktp: 'RT 1', status_anggota: '1', tempat_lahir: 'KASUI', tgl_lahir: '24', bln_lahir: '11',
-  thn_lahir: '1987', no_ktp: '1808022411870002', no_hp: '82175094274',
+  lainnya: '', alamat_ktp: 'RT 1', status_anggota: '1', tempat_lahir: 'KASUI', tgl_lahir: '15', bln_lahir: '8',
+  thn_lahir: '1980', no_ktp: '1808000000001234', no_hp: '81200000001',
   luas_lahan_ternak_diusahakan: '2.00', luas_lahan_ternak_dimiliki: '2.00', kategori_petani_penggarap: '2',
-  titik_koordinat_lahan: "4°45'34.8\"S 104°27'02.4\"E",
+  titik_koordinat_lahan: "4°00'00.0\"S 104°00'00.0\"E",
 };
 
 /** Baris Excel yang isinya sama persis dengan LAMA. */
 const barisSama = (ubah = {}) => ({
-  nama: 'BUDI', nik: '1808022411870002', ttl: 'KASUI, 24-11-1987', alamat: 'RT 1', jk: 'Laki-laki',
-  no_hp: '082175094274', status: 'Anggota', kom1: 'Padi Sawah', vol1: '1.5', kom2: 'Kopi', vol2: '1',
+  nama: 'BUDI', nik: '1808000000001234', ttl: 'KASUI, 15-8-1980', alamat: 'RT 1', jk: 'Laki-laki',
+  no_hp: '081200000001', status: 'Anggota', kom1: 'Padi Sawah', vol1: '1.5', kom2: 'Kopi', vol2: '1',
   kom3: '', vol3: '', lainnya: '', luas_usaha: '2', luas_milik: '2', kategori: 'Pemilik dan Penggarap',
-  koordinat: "4°45'34.8\"S  104°27'02.4\"E", _baris: 9, _terlaluPanjang: [], ...ubah,
+  koordinat: "4°00'00.0\"S  104°00'00.0\"E", _baris: 9, _terlaluPanjang: [], ...ubah,
 });
 
 // ─── Membaca file ──────────────────────────────────────────────────────────
@@ -41,9 +41,9 @@ function sheetContoh() {
     ['', 'ID Kelompok Tani', '342635'],
     [],
     JUDUL,
-    [1, 'BUDI', 1808022411870002, 'KASUI, 24-11-1987', 'RT 1', 'Laki-laki', 82175094274, 'Anggota', 'Padi Sawah', 1.5],
+    [1, 'BUDI', 1808000000001234, 'KASUI, 15-8-1980', 'RT 1', 'Laki-laki', 81200000001, 'Anggota', 'Padi Sawah', 1.5],
     [],
-    [2, 'SITI', '1808022411870003'],
+    [2, 'SITI', '1808000000001235'],
   ];
 }
 
@@ -55,8 +55,8 @@ test('bacaSheet + bacaExcel: file .xls dan .xlsx', () => {
     const { idPoktan, baris } = A.bacaExcel(A.bacaSheet(buf, XLSX));
     assert.equal(idPoktan, '342635', bookType);
     assert.equal(baris.length, 2);
-    assert.equal(baris[0].nik, '1808022411870002'); // angka bulat tanpa .0 / notasi E
-    assert.equal(baris[0].no_hp, '82175094274');
+    assert.equal(baris[0].nik, '1808000000001234'); // angka bulat tanpa .0 / notasi E
+    assert.equal(baris[0].no_hp, '81200000001');
     assert.equal(baris[0].vol1, '1.5');
     assert.equal(baris[0]._baris, 5);
     assert.equal(baris[1]._baris, 7); // baris kosong dilewati, nomor baris tetap sesuai Excel
@@ -101,7 +101,7 @@ test('bandingkan: angka', () => {
 });
 
 test('bandingkan: no HP', () => {
-  for (const hp of ['82175094274', '082175094274', '6282175094274', '0821-7509-4274'])
+  for (const hp of ['81200000001', '081200000001', '6281200000001', '0812-0000-0001'])
     assert.deepEqual(A.bandingkan(barisSama({ no_hp: hp }), LAMA, KOMODITAS).perubahan, {}, hp);
   assert.deepEqual(A.bandingkan(barisSama({ no_hp: '81234567890' }), LAMA, KOMODITAS).perubahan, { no_hp: '081234567890' });
   assert.throws(() => A.bandingkan(barisSama({ no_hp: '0812' }), LAMA, KOMODITAS), /No HP/);
@@ -177,7 +177,7 @@ test('parseJk', () => {
 });
 
 test('cekNik', () => {
-  assert.equal(A.cekNik('1808022411870002'), '');
+  assert.equal(A.cekNik('1808000000001234'), '');
   assert.match(A.cekNik('1.80802E+15'), /rusak/);
   assert.match(A.cekNik('123', { wajib16: true }), /16 angka/);
 });
