@@ -1,18 +1,29 @@
 # Asisten PPL
 
-Ekstensi Chrome/Edge berisi alat bantu untuk tugas penyuluh di berbagai aplikasi. Setiap tugas berupa **modul**
-yang bisa dinyalakan atau dimatikan lewat ikon ekstensi di toolbar.
-Berjalan sepenuhnya di browser dan memakai akun masing-masing. Tidak perlu Python, server, atau bot.
+Ekstensi Chrome/Edge untuk mempercepat pekerjaan penyuluh pertanian (PPL) di **SIMLUH**, **e-RDKK**, dan **e-Banper**.
+Cukup pasang, login seperti biasa, lalu tombol/kartu bantuan muncul sendiri di halaman aplikasinya.
+
+## Fitur singkat
+
+**SIMLUH**
+- **Update dari Excel** — ubah atau tambah banyak anggota poktan sekaligus dari file Cetak Excel, tidak perlu isi form satu per satu.
+- **Download Poktan** — unduh Cetak Excel anggota semua poktan per desa dalam satu ZIP.
+- **Rekap Luas Lahan per Komoditas** — dashboard di Home: total luas & jumlah petani per komoditas, per desa, plus grafik.
+
+**e-RDKK**
+- **Cek Duplikasi** — temukan data yang ter-upload 2x di *semua* status (yang luput dari Monitoring Duplikasi bawaan), lalu hapus/batal salinannya.
+- **Cek PT** — tampilkan padi/jagung yang bukan 2 PT dan kopi lebih dari 1 PT, bisa dibatalkan/dihapus massal.
+- **Status Upload** — poktan mana yang sudah dan belum upload RDKK, per desa.
+- **Rekap Luas** — luas lahan & luas tanam per desa → poktan → komoditas, bisa diunduh Excel.
+- **Unduh Semua PDF** — cetak RDKK semua poktan sekaligus, tersusun rapi per desa dalam satu ZIP.
+
+**e-Banper**
+- **Kuota Program** — lihat Rancangan Pusat, Telah Diajukan, dan Sisa kuota semua kegiatan dalam satu daftar + unduh Excel.
+
+Semua berjalan di browser dengan akun Anda sendiri: tanpa server, tanpa menyimpan password, dan tidak ada data yang
+dikirim/dihapus sebelum Anda klik konfirmasi. Setiap modul bisa dinyalakan/dimatikan lewat ikon ekstensi di toolbar.
 
 > Alat bantu tidak resmi, bukan aplikasi Kementerian Pertanian.
-
-## Modul
-
-| Modul | Situs | Fungsi |
-|---|---|---|
-| SIMLUH — Update dari Excel | simluh.pertanian.go.id | Ubah & tambah anggota poktan dari file Cetak Excel; Download Poktan (Cetak Excel anggota per desa, ZIP) |
-| e-Banper — Kuota Program | ebanper.pertanian.go.id | Lihat Rancangan Pusat, Telah Diajukan, dan Sisa semua kegiatan sekaligus |
-| e-RDKK — Duplikasi, Cek PT & Rekap Luas | erdkk25.pertanian.go.id | Data ter-upload 2x di **semua** status; padi/jagung yang PT-nya bukan 2 (batal/hapus massal); rekap luas lahan |
 
 ## Cara pasang (mode developer)
 
