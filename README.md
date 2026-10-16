@@ -30,17 +30,23 @@ dikirim/dihapus sebelum Anda klik konfirmasi. Setiap modul bisa dinyalakan/dimat
 3. Nyalakan **Developer mode** / **Mode pengembang**.
 4. Klik **Load unpacked** / **Muat yang belum dikemas**, lalu pilih folder tadi (folder yang berisi `manifest.json`).
 
-**Memperbarui ke versi baru:** ganti isi folder dengan versi baru, lalu klik tombol ↻ (Reload) pada ekstensi di halaman `chrome://extensions`.
+**Atau lewat Git** (lebih mudah diperbarui): `git clone https://github.com/dasx000/asisten-ppl-chrome.git`,
+lalu lakukan langkah 2–4 dengan memilih folder hasil clone.
+
+**Memperbarui ke versi baru:** ganti isi folder dengan versi baru (atau `git pull` bila memakai Git),
+lalu klik tombol ↻ (Reload) pada ekstensi di halaman `chrome://extensions`.
 
 **Menyalakan/mematikan modul:** klik ikon Asisten PPL di toolbar, lalu geser saklar modulnya.
 
 ---
 
-## Modul SIMLUH — Update dari Excel
+## Modul SIMLUH
+
+### Update dari Excel
 
 Memperbarui dan menambah anggota poktan di SIMLUH dari file **Cetak Excel**.
 
-### Aman dipakai
+**Aman dipakai**
 
 - **Tidak pernah menghapus anggota.** Modul ini tidak punya perintah hapus. Baris yang dihapus dari Excel hanya dilewati, anggotanya tetap ada di SIMLUH.
 - **Tidak ada yang dikirim sebelum Anda klik Kirim.** Semua perubahan ditampilkan dulu untuk diperiksa.
@@ -48,7 +54,7 @@ Memperbarui dan menambah anggota poktan di SIMLUH dari file **Cetak Excel**.
 - Sel yang **sengaja dikosongkan** di Excel ikut dikosongkan di SIMLUH, dan ditandai "(dikosongkan)" saat diperiksa.
 - Data hanya dikirim ke SIMLUH memakai akun Anda sendiri, tidak ke pihak lain. Ekstensi tidak menyimpan password.
 
-### Cara pakai
+**Cara pakai**
 
 1. Login SIMLUH seperti biasa, lalu buka **daftar anggota** salah satu poktan.
 2. Klik tombol hijau **Update dari Excel** di pojok kanan bawah.
@@ -63,8 +69,6 @@ Memperbarui dan menambah anggota poktan di SIMLUH dari file **Cetak Excel**.
 
 File yang dipakai harus milik poktan yang sedang dibuka. Kolom NIK sebaiknya berformat **Teks** di Excel,
 supaya angkanya tidak rusak menjadi `1,8E+15` atau berakhiran `0000`.
-
----
 
 ### Download Poktan: Cetak Excel anggota per desa (ZIP)
 
@@ -83,25 +87,30 @@ Di halaman **List Kelompok Tani** (menu Kelompok Tani) muncul kartu **Download P
 ### Dashboard Home: Rekap Luas Lahan per Komoditas
 
 Di halaman **Home** SIMLUHTAN (Admin BPP) muncul kartu **Rekap Luas Lahan per Komoditas**. Klik **Muat rekap**
-(±20 detik) untuk membaca anggota semua kelompok tani.
+(±1 menit) untuk membaca anggota semua kelompok tani.
 
 - Luas = jumlah Volume (ha) pada Komoditas yang Diusahakan 1–3 tiap anggota; petani dihitung sekali per komoditas.
-- Ternak (ekor) ditampilkan terpisah, tidak masuk luas.
+- Ternak, unggas, dan perikanan (ekor) ditampilkan terpisah dan **tidak masuk luas**. Tanaman pakan ternak
+  (mis. Hijauan Pakan Ternak, Rumput Gajah) tetap dihitung luas.
 - Kartu total, grafik batang per komoditas, tabel per komoditas (petani, luas, rata-rata, %), rincian per desa; filter desa.
 - Hanya membaca; nama/NIK tidak disimpan, hanya angka rekap di memori.
 
-## Modul e-Banper — Kuota Program
+---
+
+## Modul e-Banper
+
+### Kuota Program
 
 Menampilkan kuota **semua kegiatan** bantuan di kabupaten Anda dalam satu daftar: **Rancangan Pusat**,
 **Telah Diajukan**, dan **Sisa yang bisa diajukan**. Tidak perlu lagi membuka form Tambah Usulan dan memilih
 kegiatan satu per satu.
 
-### Aman dipakai
+**Aman dipakai**
 
 - **Hanya membaca data.** Modul ini tidak pernah membuat, mengubah, atau mengirim usulan.
 - Memakai sesi login e-Banper Anda sendiri. Data yang tampil otomatis sesuai kabupaten akun Anda.
 
-### Cara pakai
+**Cara pakai**
 
 1. Login e-Banper sebagai penyuluh seperti biasa.
 2. Di halaman mana pun di menu penyuluh, klik tombol hijau **Kuota Program** di pojok kanan bawah.
@@ -115,13 +124,20 @@ kegiatan satu per satu.
 
 ---
 
-## Modul e-RDKK — Cek Duplikasi
+## Modul e-RDKK
+
+Login e-RDKK, buka menu mana saja, lalu klik tombol hijau **Asisten e-RDKK** di pojok kanan bawah. Panel membaca
+semua pengajuan sekali, lalu menyediakan empat tab: **Status Upload**, **Cek PT**, **Rekap Luas**, dan **Cek Duplikasi**.
+Kartu **Unduh Semua PDF** ada terpisah di halaman Cetak Data. Modul aktif di semua alamat `erdkk*.pertanian.go.id`,
+jadi tetap jalan bila domain e-RDKK berganti tahun.
+
+### Cek Duplikasi
 
 Menu **Monitoring Duplikasi** bawaan e-RDKK hanya memeriksa pengajuan berstatus **Belum dikirim ke Korluh**.
 Data yang sama ter-upload 2x tidak ketahuan kalau salah satunya sudah dikirim (Menunggu persetujuan Korluh/Kasie/…)
 atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik di semua kolom**), tapi memeriksa **semua status**.
 
-### Aman dipakai
+**Aman dipakai**
 
 - **Tidak ada yang dihapus atau dibatalkan tanpa Anda klik dan menyetujui konfirmasi.** Selain itu modul hanya membaca data.
 - Tombol Hapus hanya ada di baris **Belum dikirim ke Korluh**, dan **minimal satu baris per kelompok selalu disisakan**
@@ -134,10 +150,10 @@ atau keduanya sudah dikirim. Modul ini memakai aturan yang sama (**baris identik
 - Data berisi NIK, jadi **tidak disimpan** di browser. Data selalu dibaca ulang saat panel dibuka.
 - Status ditolak/batal/Not Valid (mis. NIK meninggal) tidak ikut dihitung.
 
-### Cara pakai
+**Cara pakai**
 
-1. Login e-RDKK, buka menu mana saja. Klik tombol hijau **Cek Duplikasi** di pojok kanan bawah.
-2. Panel langsung membaca semua pengajuan dan menampilkan data dobel. Yang ditandai kuning **Tidak terdeteksi e-RDKK**
+1. Klik tombol **Asisten e-RDKK**, lalu pilih tab **Cek Duplikasi**.
+2. Tab ini menampilkan data dobel dari semua pengajuan. Yang ditandai kuning **Tidak terdeteksi e-RDKK**
    adalah yang luput dari Monitoring Duplikasi bawaan.
 3. Saring per kelompok tani, cari nama/NIK, atau pilih tab **Tidak terdeteksi e-RDKK** / **Lintas status**.
 4. Klik kartu untuk melihat baris-barisnya. Hapus salinan dengan tombol **Hapus** per baris atau
@@ -194,8 +210,6 @@ beserta jumlah petani.
 - Subtotal per poktan dan per kampung, total, dan ringkasan per komoditas.
 - Nama desa dari master wilayah e-RDKK (`/api/wilayah`, sumber menu Master Data → Wilayah). **Unduh Excel** mengikuti filter yang aktif.
 
----
-
 ### Unduh Semua PDF (halaman Cetak Data)
 
 Di menu **Cetak Data** muncul kartu **Unduh Semua PDF (ZIP)** di bawah tabel bawaan.
@@ -214,6 +228,8 @@ Di menu **Cetak Data** muncul kartu **Unduh Semua PDF (ZIP)** di bawah tabel baw
   RDKK komoditas terpilih; daftar lengkap ada/belum di `REKAP POKTAN.csv` dalam ZIP.
 - Perkiraan: ±15 detik per desa.
 
+---
+
 ## Untuk pengembang
 
 ### Struktur
@@ -231,9 +247,11 @@ modules/
     core/api.js          request ke SIMLUH dengan sesi login browser, token CSRF dipasang sendiri
     core/proses.js       alur periksa → kirim untuk mode ubah/tambah
     core/unduhpoktan.js  Download Poktan: urai List Kelompok Tani, unduh Cetak Excel per poktan, susun ZIP
-    content/unduhpoktan.js  kartu Download Poktan di List Kelompok Tani (Shadow DOM)
-    content/panel.js     panel di halaman (Shadow DOM)
+    core/dashboard.js    rekap luas lahan per komoditas dari tabel anggota (ternak dipisah)
+    content/panel.js     panel Update dari Excel di daftar anggota (Shadow DOM)
     content/panel.css
+    content/unduhpoktan.js / .css  kartu Download Poktan di List Kelompok Tani (Shadow DOM)
+    content/dashboard.js / .css    kartu Rekap Luas Lahan di halaman Home (Shadow DOM)
     test/                test Node (tidak ikut ZIP)
     demo/                pembuat video demo (tidak ikut ZIP)
   ebanper/
@@ -249,9 +267,11 @@ modules/
     core/cekmt.js        analisis PT mayoritas per komoditas → pengajuan yang PT-nya berbeda, aturan Batal (status 2) / Hapus (status 1)
     core/upload.js       status upload per poktan (master /api/poktan vs pengajuan aktif)
     core/rekap.js        rekap luas lahan & pupuk per desa → poktan → komoditas, filter desa/poktan/status
-    core/laporan.js      tata letak Excel duplikasi & rekap luas
-    content/panel.js     panel Cek Duplikasi (Shadow DOM), data tidak disimpan
+    core/cetakpdf.js     Unduh Semua PDF: poktan × kios × komoditas → cetak-count/cetak-pdf, susun ZIP
+    core/laporan.js      tata letak Excel duplikasi, cek PT, status upload & rekap luas
+    content/panel.js     panel Asisten e-RDKK bertab (Shadow DOM), data tidak disimpan
     content/panel.css
+    content/cetak.js / .css  kartu Unduh Semua PDF di halaman Cetak Data
     test/                test Node (tidak ikut ZIP)
 ```
 
