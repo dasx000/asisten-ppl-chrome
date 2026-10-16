@@ -5,20 +5,17 @@ Cukup pasang, login seperti biasa, lalu tombol/kartu bantuan muncul sendiri di h
 
 ## Fitur singkat
 
-**SIMLUH**
-- **Update dari Excel** — ubah atau tambah banyak anggota poktan sekaligus dari file Cetak Excel, tidak perlu isi form satu per satu.
-- **Download Poktan** — unduh Cetak Excel anggota semua poktan per desa dalam satu ZIP.
-- **Rekap Luas Lahan per Komoditas** — dashboard di Home: total luas & jumlah petani per komoditas, per desa, plus grafik.
-
-**e-RDKK**
-- **Cek Duplikasi** — temukan data yang ter-upload 2x di *semua* status (yang luput dari Monitoring Duplikasi bawaan), lalu hapus/batal salinannya.
-- **Cek PT** — tampilkan padi/jagung yang bukan 2 PT dan kopi lebih dari 1 PT, bisa dibatalkan/dihapus massal.
-- **Status Upload** — poktan mana yang sudah dan belum upload RDKK, per desa.
-- **Rekap Luas** — luas lahan & luas tanam per desa → poktan → komoditas, bisa diunduh Excel.
-- **Unduh Semua PDF** — cetak RDKK semua poktan sekaligus, tersusun rapi per desa dalam satu ZIP.
-
-**e-Banper**
-- **Kuota Program** — lihat Rancangan Pusat, Telah Diajukan, dan Sisa kuota semua kegiatan dalam satu daftar + unduh Excel.
+| Aplikasi | Fitur | Fungsi |
+|---|---|---|
+| SIMLUH | Update dari Excel | Ubah/tambah banyak anggota poktan sekaligus dari file Cetak Excel |
+| SIMLUH | Download Poktan | Unduh Cetak Excel anggota semua poktan per desa (1 ZIP) |
+| SIMLUH | Rekap Luas Lahan | Dashboard luas & jumlah petani per komoditas dan per desa |
+| e-RDKK | Cek Duplikasi | Cari data ter-upload 2x di semua status, lalu hapus/batal salinannya |
+| e-RDKK | Cek PT | Padi/jagung bukan 2 PT & kopi lebih dari 1 PT, batal/hapus massal |
+| e-RDKK | Status Upload | Poktan yang sudah/belum upload RDKK per desa |
+| e-RDKK | Rekap Luas | Luas lahan & luas tanam per desa → poktan → komoditas |
+| e-RDKK | Unduh Semua PDF | Cetak RDKK semua poktan sekaligus, rapi per desa (1 ZIP) |
+| e-Banper | Kuota Program | Rancangan Pusat, Telah Diajukan & Sisa kuota semua kegiatan |
 
 Semua berjalan di browser dengan akun Anda sendiri: tanpa server, tanpa menyimpan password, dan tidak ada data yang
 dikirim/dihapus sebelum Anda klik konfirmasi. Setiap modul bisa dinyalakan/dimatikan lewat ikon ekstensi di toolbar.
